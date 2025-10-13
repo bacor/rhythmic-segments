@@ -36,7 +36,7 @@ html_css_files = ["custom.css"]
 myst_enable_extensions = ["colon_fence", "deflist", "linkify", "dollarmath", "amsmath"]
 
 # Notebooks: execute during build (set to "off" to trust existing outputs)
-nb_execution_mode = "off"  # "off" | "auto"
+nb_execution_mode = "auto"  # "off" | "auto"
 nb_execution_timeout = 120
 
 # AutoAPI: point to your package

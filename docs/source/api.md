@@ -7,6 +7,6 @@ The documentation below is generated automatically from the source code using
 :maxdepth: 2
 :caption: Modules
 
-../autoapi/rhythmic_segments/segments/index
-../autoapi/rhythmic_segments/patterns/index
+segments <../autoapi/rhythmic_segments/segments/index>
+patterns <../autoapi/rhythmic_segments/patterns/index>
 ```
