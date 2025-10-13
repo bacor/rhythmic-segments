@@ -1,0 +1,51 @@
+[project]
+name = "rhythmic_segments"
+version = "0.1.0"
+description = "Research code for basic Rhythmic Segment Analysis."
+authors = [
+    {name = "Bas Cornelissen",email = "mail@bascornelissen.nl"}
+]
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = ["matplotlib (>=3.10.6,<4.0.0)", "numpy (>=2.3.3,<3.0.0)", "pandas (>=2.3.3,<3.0.0)"]
+
+[tool.poetry]
+packages = [{include = "rhythmic_segments", from = "src"}]
+exclude = ["notebooks/**"]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest (>=8.4.2,<9.0.0)",
+    "pytest-cov (>=7.0.0,<8.0.0)",
+    "ruff (>=0.13.2,<0.14.0)",
+    "mypy (>=1.18.2,<2.0.0)",
+    "notebook (>=7.4.7,<8.0.0)"
+]
+docs = [
+    "sphinx (>=8.2.3,<9.0.0)",
+    "furo (>=2025.9.25,<2026.0.0)",
+    "myst-parser (>=4.0.1,<5.0.0)",
+    "myst-nb (>=1.3.0,<2.0.0)",
+    "sphinx-autoapi (>=3.6.1,<4.0.0)",
+    "sphinx-copybutton (>=0.5.2,<0.6.0)",
+    "sphinx-design (>=0.6.1,<0.7.0)",
+    "linkify-it-py (>=2.0.3,<3.0.0)",
+    "shibuya (>=2025.9.25,<2026.0.0)"
+]
+
+[tool.pytest.ini_options]
+# run tests and doctests by default
+addopts = "-q --doctest-modules --doctest-glob='*.md' --strict-markers"
+doctest_optionflags = "NORMALIZE_WHITESPACE"
+testpaths = ["tests", "src"]
+# optional: keep output clean
+filterwarnings = [
+  "error::DeprecationWarning:rhythmic-segments.*",
+]
+
+[tool.poetry.scripts]
+docs-build = "sphinx.cmd.build:main -b html docs/source docs/build/html"
