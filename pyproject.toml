@@ -1,6 +1,6 @@
 [project]
 name = "rhythmic_segments"
-version = "0.1.0"
+version = "0.1.1"
 description = "Research code for basic Rhythmic Segment Analysis."
 authors = [
     {name = "Bas Cornelissen",email = "mail@bascornelissen.nl"}
@@ -10,6 +10,10 @@ requires-python = ">=3.11,<3.14"
 dependencies = ["matplotlib (>=3.10.6,<4.0.0)", "numpy (>=2.3.3,<3.0.0)", "pandas (>=2.3.3,<3.0.0)"]
 
 [tool.poetry]
+name = "rhythmic_segments"
+version = "0.1.1"
+description = "Research code for basic Rhythmic Segment Analysis."
+authors = ["Bas Cornelissen <mail@bascornelissen.nl>"]
 packages = [{include = "rhythmic_segments", from = "src"}]
 exclude = ["notebooks/**"]
 
