@@ -48,6 +48,3 @@ testpaths = ["tests", "src"]
 filterwarnings = [
   "error::DeprecationWarning:rhythmic-segments.*",
 ]
-
-[tool.poetry.scripts]
-docs-build = "sphinx.cmd.build:main -b html docs/source docs/build/html"
