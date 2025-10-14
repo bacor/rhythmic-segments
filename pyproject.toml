@@ -32,6 +32,9 @@ sphinx-copybutton = ">=0.5.2,<0.6.0"
 sphinx-design = ">=0.6.1,<0.7.0"
 linkify-it-py = ">=2.0.3,<3.0.0"
 shibuya = ">=2025.9.25,<2026.0.0"
+scipy = "^1.16.2"
+matplotlib = "^3.10.7"
+mpltern = "^1.0.4"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.4.2,<9.0.0"
@@ -39,6 +42,7 @@ pytest-cov = ">=7.0.0,<8.0.0"
 ruff = ">=0.13.2,<0.14.0"
 mypy = ">=1.18.2,<2.0.0"
 notebook = ">=7.4.7,<8.0.0"
+
 
 [tool.pytest.ini_options]
 # run tests and doctests by default

@@ -53,5 +53,6 @@ Feel free to contribute via GitHub: https://github.com/bacor/rhythmic-segments
 
 Getting started <self>
 Basic usage <Basic Usage>
+Plotting <Plotting>
 API Reference <api>
 ```
