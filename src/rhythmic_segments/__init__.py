@@ -1,1 +1,1 @@
-from .segments import RhythmicSegments
+from .segments import RhythmicSegments as RhythmicSegments
