@@ -15,7 +15,8 @@ you find surprising.
 
 
 ## Installation
-The package requires a Python version between 3.11 and 3.14.
+
+The package has been tested with Python 3.11 and 3.12.
 You can install the package using pip:
 
 ```sh
