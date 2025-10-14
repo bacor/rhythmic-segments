@@ -53,3 +53,10 @@ testpaths = ["tests", "src"]
 filterwarnings = [
   "error::DeprecationWarning:rhythmic-segments.*",
 ]
+
+[tool.mypy]
+python_version = "3.11"
+
+[[tool.mypy.overrides]]
+module = ["pandas", "pandas.*"]
+ignore_missing_imports = true

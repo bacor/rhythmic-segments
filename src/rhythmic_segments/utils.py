@@ -1,9 +1,11 @@
 """General-purpose utilities for rhythmic segment processing."""
 
+from typing import Any
+
 import numpy as np
 
 
-def is_nan(value: object) -> bool:
+def is_nan(value: Any) -> bool:
     """Return ``True`` when *value* behaves like a numeric NaN.
 
     >>> is_nan(float("nan"))
@@ -16,6 +18,6 @@ def is_nan(value: object) -> bool:
     """
 
     try:
-        return bool(np.isnan(value))  # type: ignore[arg-type]
-    except TypeError:
+        return bool(np.isnan(value))
+    except (TypeError, ValueError):
         return False
