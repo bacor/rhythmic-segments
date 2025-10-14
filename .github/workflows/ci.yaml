@@ -7,6 +7,22 @@ on:
     branches: [ main ]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: "2.1.1"
+      - name: Install dependencies
+        run: poetry install --with dev
+      - name: Lint
+        run: poetry run ruff check .
+
   test:
     runs-on: ubuntu-latest
     strategy:
@@ -24,8 +40,6 @@ jobs:
           poetry-version: "2.1.1"
       - name: Install dependencies
         run: poetry install --with dev
-      - name: Lint
-        run: poetry run ruff check .
       - name: Type check
         run: poetry run mypy src tests
       - name: Test
