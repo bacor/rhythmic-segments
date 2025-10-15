@@ -20,6 +20,6 @@ jobs:
           POETRY_HTTP_BASIC_PYPI_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           poetry config virtualenvs.create false
-          poetry install --no-dev
+          poetry install --without dev docs --no-interaction
           poetry build
           poetry publish --username "$POETRY_HTTP_BASIC_PYPI_USERNAME" --password "$POETRY_HTTP_BASIC_PYPI_PASSWORD"
