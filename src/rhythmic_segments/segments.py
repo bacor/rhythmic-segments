@@ -500,6 +500,124 @@ class RhythmicSegments:
         )
 
     @staticmethod
+    def from_events(
+        events: Iterable[Any],
+        length: int,
+        *,
+        drop_na: bool = False,
+        split_at_nan: bool = True,
+        allow_zero_intervals: bool = False,
+        warn_on_short: bool = True,
+        copy: bool = True,
+        dtype: np.dtype = np.dtype("float32"),
+        meta: Optional[Any] = None,
+        meta_aggregator: Optional[Callable[[pd.DataFrame], Mapping[str, Any]]] = None,
+    ) -> "RhythmicSegments":
+        """Create an instance from timestamped event data.
+
+        Parameters
+        ----------
+        events : Iterable[Any]
+            Monotonic (or at least ordered) series of onset timestamps. Must be
+            convertible to ``float``.
+        length : int
+            Segment length passed to :meth:`from_intervals`.
+        drop_na : bool, optional
+            Remove ``NaN`` timestamps before differencing. When ``False``
+            (default), the resulting interval stream will contain ``NaN``
+            markers wherever the original event data did, which in turn act as
+            block boundaries for :meth:`from_intervals`.
+        split_at_nan : bool, optional
+            Forwarded to :meth:`from_intervals`; controls whether extracted
+            segments can span across ``NaN`` interval boundaries.
+        allow_zero_intervals : bool, optional
+            Allow identical consecutive events (zero-length intervals). When
+            ``False`` (default) such ties raise a :class:`ValueError`.
+        warn_on_short, copy : bool, optional
+            Forwarded to :meth:`from_intervals`.
+        dtype : numpy.dtype, optional
+            Target dtype for the internal arrays passed to :meth:`from_segments`.
+        meta : Optional[Any]
+            Optional metadata aligned with the derived intervals, i.e. it must
+            contain exactly ``len(events) - 1`` rows after any ``NaN`` removal.
+        meta_aggregator : Optional[Callable[[pandas.DataFrame], Mapping[str, Any]]]
+            Forwarded to :meth:`from_intervals`.
+
+        Examples
+        --------
+        >>> events = [0.0, 0.5, 1.0, np.nan, 1.25, 1.75, 2.0]
+        >>> rs = RhythmicSegments.from_events(events, 2)
+        >>> rs.segments
+        array([[0.5 , 0.5 ],
+            [0.5 , 0.25]], dtype=float32)
+
+        Segments never span the ``np.nan`` boundary. To drop all NaNs values before
+        computing differneces, set ``drop_na=True``:
+
+        >>> RhythmicSegments.from_events(events, 2, drop_na=True).segments
+        array([[0.5 , 0.5 ],
+           [0.5 , 0.25],
+           [0.25, 0.5 ],
+           [0.5 , 0.25]], dtype=float32)
+
+        Note that if you do not drop NaNs, but set ``split_at_nan=False``, then
+        :meth:`from_intervals` will throw an error
+
+        >>> RhythmicSegments.from_events(events, 2, split_at_nan=False)
+        Traceback (most recent call last):
+        ...
+        ValueError: Intervals contain NaN values; enable split_at_nan or preprocess via split_blocks().
+        """
+
+        events_arr = np.asarray(list(events), dtype=float)
+        if events_arr.ndim != 1:
+            raise ValueError("events must be one-dimensional")
+
+        if drop_na:
+            events_arr = events_arr[~np.isnan(events_arr)]
+
+        if events_arr.size > 1:
+            # Note that this results in two np.na values for every np.na in the input.
+            # However, from_intervals handles that fine, so that's no problem.
+            intervals = np.diff(events_arr)
+        else:
+            intervals = np.empty(0, dtype=float)
+
+        finite_intervals = intervals[np.isfinite(intervals)]
+        if np.any(finite_intervals < 0):
+            raise ValueError("events must be in non-decreasing order")
+        if not allow_zero_intervals and np.any(finite_intervals == 0):
+            raise ValueError(
+                "events contain zero-length intervals; enable allow_zero_intervals=True to permit ties"
+            )
+
+        interval_meta: Optional[pd.DataFrame]
+        if meta is None:
+            interval_meta = None
+        else:
+            expected_rows = intervals.size
+            interval_meta = _coerce_meta_frame(
+                meta,
+                expected_rows=expected_rows,
+                missing_rows_message=(
+                    "meta must have the same number of rows as derived intervals "
+                    "(len(events) - 1)"
+                ),
+            )
+
+        return RhythmicSegments.from_intervals(
+            intervals,
+            length=length,
+            split_at_nan=split_at_nan,
+            warn_on_short=warn_on_short,
+            copy=copy,
+            allow_zero=allow_zero_intervals,
+            dtype=dtype,
+            meta=interval_meta,
+            meta_aggregator=meta_aggregator,
+        )
+
+    @staticmethod
     def concat(
         *segments: "RhythmicSegments",
         source_col: Optional[str] = None,
