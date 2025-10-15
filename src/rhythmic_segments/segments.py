@@ -608,6 +608,88 @@ class RhythmicSegments:
         mask_arr = np.asarray(mask, dtype=bool)
         return self.take(np.nonzero(mask_arr)[0])
 
+    def filter_by_duration(
+        self,
+        min_value: Optional[float] = None,
+        max_value: Optional[float] = None,
+        min_quantile: Optional[float] = None,
+        max_quantile: Optional[float] = None,
+    ) -> "RhythmicSegments":
+        """Return a new instance filtered by duration thresholds.
+
+        Parameters
+        ----------
+        min_value, max_value : Optional[float], optional
+            Absolute duration bounds (inclusive). When supplied, these override
+            the corresponding quantile parameters.
+        min_quantile, max_quantile : Optional[float], optional
+            Quantile-based bounds (inclusive) used when explicit ``min_value`` or
+            ``max_value`` are not provided. Pass ``None`` to disable a bound.
+
+        Examples
+        --------
+        >>> rs = RhythmicSegments.from_segments([[1, 2], [3, 4], [5, 6]])
+        >>> rs.durations
+        array([ 3.,  7., 11.], dtype=float32)
+        >>> short = rs.filter_by_duration(max_quantile=0.5)
+        >>> short.durations
+        array([3., 7.], dtype=float32)
+        >>> rs.filter_by_duration(min_value=8.0).durations
+        array([11.], dtype=float32)
+        >>> rs.filter_by_duration(min_value=3.0, max_value=8.0).durations
+        array([3., 7.], dtype=float32)
+        >>> rs.filter_by_duration()
+        Traceback (most recent call last):
+        ...
+        ValueError: At least one duration bound must be specified
+        """
+
+        if (
+            min_value is None
+            and max_value is None
+            and min_quantile is None
+            and max_quantile is None
+        ):
+            raise ValueError("At least one duration bound must be specified")
+
+        if self.count == 0:
+            return self
+
+        durations = self.durations
+
+        lower_bound: Optional[float]
+        if min_value is not None:
+            lower_bound = float(min_value)
+        elif min_quantile is not None:
+            if not 0.0 <= min_quantile <= 1.0:
+                raise ValueError("min_quantile must be between 0 and 1")
+            lower_bound = float(np.quantile(durations, min_quantile))
+        else:
+            lower_bound = None
+
+        upper_bound: Optional[float]
+        if max_value is not None:
+            upper_bound = float(max_value)
+        elif max_quantile is not None:
+            if not 0.0 <= max_quantile <= 1.0:
+                raise ValueError("max_quantile must be between 0 and 1")
+            upper_bound = float(np.quantile(durations, max_quantile))
+        else:
+            upper_bound = None
+
+        if (
+            lower_bound is not None
+            and upper_bound is not None
+            and lower_bound > upper_bound
+        ):
+            raise ValueError("Lower duration bound exceeds upper bound")
+
+        if lower_bound is not None and upper_bound is not None:
+            return self.filter((durations >= lower_bound) & (durations <= upper_bound))
+        if lower_bound is not None:
+            return self.filter(durations >= lower_bound)
+        return self.filter(durations <= upper_bound)
+
     def with_meta(self, **cols: Any) -> "RhythmicSegments":
         """Return a new instance with additional metadata columns.
 

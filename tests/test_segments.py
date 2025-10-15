@@ -197,3 +197,47 @@ def test_rhythmic_segments_repr_handles_missing_meta_and_ellipsis():
     summary = repr(rs)
     assert "n_meta_cols=0" in summary
     assert ", ..." in summary
+
+
+def test_rhythmic_segments_filter_by_duration_value_bounds():
+    rs = RhythmicSegments.from_segments(
+        [[1.0, 2.0], [2.0, 3.0], [4.0, 5.0]],
+    )
+    filtered = rs.filter_by_duration(min_value=4.5, max_value=8.5)
+    assert filtered.count == 1
+    np.testing.assert_allclose(filtered.durations, np.array([5.0], dtype=np.float32))
+
+
+def test_rhythmic_segments_filter_by_duration_quantiles():
+    rs = RhythmicSegments.from_segments(
+        [[1.0, 2.0], [2.0, 3.0], [4.0, 5.0], [6.0, 7.0]],
+    )
+    filtered = rs.filter_by_duration(min_quantile=0.25, max_quantile=0.75)
+    np.testing.assert_allclose(
+        filtered.durations, np.array([5.0, 9.0], dtype=np.float32)
+    )
+
+
+def test_rhythmic_segments_filter_by_duration_invalid_quantile():
+    rs = RhythmicSegments.from_segments([[1.0, 2.0], [2.0, 3.0]])
+    with pytest.raises(ValueError):
+        rs.filter_by_duration(min_quantile=-0.1)
+
+
+def test_rhythmic_segments_filter_by_duration_conflicting_bounds():
+    rs = RhythmicSegments.from_segments([[1.0, 2.0], [2.0, 3.0]])
+    with pytest.raises(ValueError):
+        rs.filter_by_duration(min_value=5.0, max_value=1.0)
+
+
+def test_rhythmic_segments_filter_by_duration_requires_bounds():
+    rs = RhythmicSegments.from_segments([[1.0, 2.0], [2.0, 3.0]])
+    with pytest.raises(ValueError):
+        rs.filter_by_duration()
+
+
+def test_rhythmic_segments_filter_by_duration_value_precedence():
+    rs = RhythmicSegments.from_segments([[1.0, 2.0], [2, 2.0], [3.0, 4.0]])
+    result = rs.filter_by_duration(min_value=7.0, min_quantile=0.1)
+    # min_value should take precedence, leaving only the last duration (7.0)
+    np.testing.assert_allclose(result.durations, np.array([7.0], dtype=np.float32))
