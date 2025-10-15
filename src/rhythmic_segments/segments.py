@@ -304,7 +304,8 @@ class RhythmicSegments:
         segments : Iterable[Iterable[float]]
             Matrix of segment data.
         length : Optional[int]
-            Expected segment length. Required when ``segments`` is empty.
+            Expected segment length. Required when ``segments`` is empty and must
+            be at least ``2``.
         meta : Optional[Any]
             Per-segment metadata; anything convertible to :class:`pandas.DataFrame`
             with one row per segment.
@@ -334,6 +335,8 @@ class RhythmicSegments:
             length = inferred_length
         elif length != inferred_length:
             raise ValueError("Provided length does not match segment width")
+        if length < 2:
+            raise ValueError("segment length must be at least 2")
 
         patterns, durations = normalize_segments(segments)
 
@@ -373,7 +376,7 @@ class RhythmicSegments:
             Contiguous numeric intervals to window. Inputs containing ``np.nan``
             delimiters can be handled by enabling ``split_at_nan``.
         length : int
-            Segment length.
+            Segment length. Must be at least ``2``.
         split_at_nan : bool, optional
             If ``True`` (default) split the interval stream on ``np.nan``
             boundaries before extraction.
@@ -521,7 +524,7 @@ class RhythmicSegments:
             Monotonic (or at least ordered) series of onset timestamps. Must be
             convertible to ``float``.
         length : int
-            Segment length passed to :meth:`from_intervals`.
+            Segment length passed to :meth:`from_intervals`. Must be at least ``2``.
         drop_na : bool, optional
             Remove ``NaN`` timestamps before differencing. When ``False``
             (default), the resulting interval stream will contain ``NaN``
@@ -545,25 +548,26 @@ class RhythmicSegments:
 
         Examples
         --------
-        >>> events = [0.0, 0.5, 1.0, np.nan, 1.25, 1.75, 2.0]
-        >>> rs = RhythmicSegments.from_events(events, 2)
+        >>> events = [0.0, 0.5, 1.0, np.nan, 1.5, 2.0, 2.5]
+        >>> rs = RhythmicSegments.from_events(events, length=2)
         >>> rs.segments
-        array([[0.5 , 0.5 ],
-            [0.5 , 0.25]], dtype=float32)
+        array([[0.5, 0.5],
+           [0.5, 0.5]], dtype=float32)
 
-        Segments never span the ``np.nan`` boundary. To drop all NaNs values before
-        computing differneces, set ``drop_na=True``:
+        Segments never span the ``np.nan`` boundary. To discard the boundary
+        entirely, enable ``drop_na=True``:
 
-        >>> RhythmicSegments.from_events(events, 2, drop_na=True).segments
-        array([[0.5 , 0.5 ],
-           [0.5 , 0.25],
-           [0.25, 0.5 ],
-           [0.5 , 0.25]], dtype=float32)
+        >>> RhythmicSegments.from_events(events, length=2, drop_na=True).segments
+        array([[0.5, 0.5],
+            [0.5, 0.5],
+            [0.5, 0.5],
+            [0.5, 0.5]], dtype=float32)
 
-        Note that if you do not drop NaNs, but set ``split_at_nan=False``, then
-        :meth:`from_intervals` will throw an error
+        Passing ``split_at_nan=False`` while retaining the ``NaN`` intervals
+        raises an error because :meth:`from_intervals` forbids segments crossing
+        the boundary:
 
-        >>> RhythmicSegments.from_events(events, 2, split_at_nan=False)
+        >>> RhythmicSegments.from_events(events, length=2, split_at_nan=False)
         Traceback (most recent call last):
         ...
         ValueError: Intervals contain NaN values; enable split_at_nan or preprocess via split_blocks().
