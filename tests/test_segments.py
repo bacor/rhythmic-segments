@@ -7,20 +7,8 @@ import pytest
 from rhythmic_segments.segments import (
     RhythmicSegments,
     extract_segments,
-    split_blocks,
     normalize_segments,
 )
-
-
-def test_split_blocks():
-    sections = split_blocks([1, 2, np.nan, 3])
-    assert len(sections) == 2
-    np.testing.assert_array_equal(sections[0], np.array([1.0, 2.0]))
-    np.testing.assert_array_equal(sections[1], np.array([3.0]))
-
-    single = split_blocks([1, 2, 3], separator=None)
-    assert len(single) == 1
-    np.testing.assert_array_equal(single[0], np.array([1.0, 2.0, 3.0]))
 
 
 def test_extract_segments_behaviour():
@@ -35,16 +23,20 @@ def test_extract_segments_behaviour():
         warn_result = extract_segments([1, 2], 3, warn_on_short=True)
     assert warn_result.shape == (0, 3)
 
-    dropped = extract_segments([0, 1, 2, 3, 4], 2, drop_zeros=True)
-    np.testing.assert_array_equal(
-        dropped, np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0]])
-    )
-
     with pytest.raises(ValueError):
         extract_segments([1, 0, 2], 2)
 
-    allowed_zero = extract_segments([0, 1, 2], 2, allow_zero=True)
+    allowed_zero = extract_segments([0, 1, 2], 2, check_zero_intervals=False)
     np.testing.assert_array_equal(allowed_zero, np.array([[0.0, 1.0], [1.0, 2.0]]))
+
+    with pytest.raises(ValueError):
+        extract_segments([1.0, np.nan, 2.0], 2)
+
+    allowed_nan = extract_segments(
+        [1.0, np.nan, 2.0], 2, check_nan_intervals=False
+    )
+    expected_nan = np.array([[1.0, np.nan], [np.nan, 2.0]])
+    np.testing.assert_allclose(allowed_nan, expected_nan, equal_nan=True)
 
     with pytest.warns(UserWarning):
         empty = extract_segments([1], 2)
@@ -68,7 +60,7 @@ def test_rs_from_intervals():
         [0.5, 1.0, 0.75, 1.25],
         length=2,
         meta=base_meta,
-        meta_aggregator=aggregator,
+        meta_agg=aggregator,
     )
     assert rs.count == 3
     assert rs.segments.shape == (3, 2)
@@ -82,7 +74,7 @@ def test_rs_from_intervals():
             [0.5, 1.0, 0.75, 1.25],
             length=2,
             meta=pd.DataFrame({"m": [1, 2]}),
-            meta_aggregator=aggregator,
+            meta_agg=aggregator,
         )
 
 
@@ -100,7 +92,7 @@ def test_rs_from_intervals_nan():
         intervals,
         length=2,
         meta=meta,
-        meta_aggregator=lambda df: {"sec": "-".join(df["sec"])},
+        meta_agg=lambda df: {"sec": "-".join(df["sec"])},
     )
     assert rs_split.count == 3
     assert list(rs_split.meta["sec"]) == ["a-b", "b-c", "d-e"]
@@ -110,7 +102,7 @@ def test_rs_from_intervals_nan():
             intervals,
             length=2,
             meta=pd.DataFrame({"sec": ["only"]}),
-            meta_aggregator=lambda df: {"sec": "-".join(df["sec"])},
+            meta_agg=lambda df: {"sec": "-".join(df["sec"])},
         )
 
 
@@ -121,7 +113,7 @@ def test_rs_from_intervals_length_two():
         intervals,
         length=2,
         meta=meta,
-        meta_aggregator=lambda df: {"label": df.iloc[0]["label"]},
+        meta_agg=lambda df: {"label": df.iloc[0]["label"]},
     )
     assert rs.count == 3
     assert list(rs.meta["label"]) == ["x", "z", "w"]
@@ -140,28 +132,57 @@ def test_rs_from_events_matches_intervals():
 
 
 def test_rs_from_events_meta_handling():
-    events = [0.0, 0.5, 1.0]
-    meta = {"label": ["a", "b"]}
+    events = [0.0, 0.5, 1.0, 1.5]
+    meta = {"label": ["start", "mid", "almost", "end"]}
 
-    def agg(df):
+    def event_agg(df):
+        return {"label": df.iloc[-1]["label"]}
+
+    def segment_agg(df):
         return {"label": df.iloc[-1]["label"]}
 
     rs = RhythmicSegments.from_events(
         events,
         length=2,
         meta=meta,
-        meta_aggregator=agg,
+        event_meta_agg=event_agg,
+        segment_meta_agg=segment_agg,
     )
-    assert rs.count == 1
-    assert list(rs.meta["label"]) == ["b"]
+    assert rs.count == 2
+    assert list(rs.meta["label"]) == ["almost", "end"]
 
+    # Raise error when the metadata is not the same length as the events
     with pytest.raises(ValueError):
         RhythmicSegments.from_events(
             events,
             length=2,
-            meta={"label": ["a", "b", "c"]},
-            meta_aggregator=agg,
+            meta={"label": ["start", "mid"]},
+            event_meta_agg=event_agg,
+            segment_meta_agg=segment_agg,
         )
+
+
+def test_rs_from_events_meta_with_nan():
+    events = [0.0, 0.5, 1.0, np.nan, 2.0, 3.0, 4.0]
+    meta = {"label": ["a", "b", "c", np.nan, "d", "e", "f"]}
+
+    def event_agg_concat(df):
+        if pd.isna(df["label"]).any():
+            return {"label": np.nan}
+        else:
+            return {"label": "".join(df["label"])}
+
+    def segment_concat(df):
+        return {"label": "-".join(df["label"])}
+
+    rs = RhythmicSegments.from_events(
+        events,
+        length=2,
+        meta=meta,
+        event_meta_agg=event_agg_concat,
+        segment_meta_agg=segment_concat,
+    )
+    assert list(rs.meta["label"]) == ["ab-bc", "de-ef"]
 
 
 def test_rs_from_events_requires_increasing():
@@ -174,23 +195,27 @@ def test_rs_from_events_zero_interval_handling():
     with pytest.raises(ValueError):
         RhythmicSegments.from_events(events, length=2)
 
-    rs = RhythmicSegments.from_events(events, length=2, allow_zero_intervals=True)
+    rs = RhythmicSegments.from_events(
+        events, length=2, check_zero_intervals=False
+    )
     expected = RhythmicSegments.from_intervals(
-        np.diff(np.asarray(events, dtype=float)), length=2, allow_zero=True
+        np.diff(np.asarray(events, dtype=float)),
+        length=2,
+        check_zero_intervals=False,
     )
     np.testing.assert_array_equal(rs.segments, expected.segments)
     np.testing.assert_array_equal(rs.patterns, expected.patterns)
     np.testing.assert_array_equal(rs.durations, expected.durations)
 
 
-def test_rs_from_events_drop_na():
-    events = [0.0, np.nan, 0.5, 1.0]
+def test_rs_from_events_drop_nan():
+    events = [0.0, np.nan, 0.5, 1.0, 1.5]
     with pytest.raises(ValueError):
         RhythmicSegments.from_events(events, length=2, split_at_nan=False)
 
-    rs = RhythmicSegments.from_events(events, length=2, drop_na=True)
+    rs = RhythmicSegments.from_events(events, length=2, drop_nan=True)
     expected = RhythmicSegments.from_intervals(
-        np.diff(np.asarray([0.0, 0.5, 1.0], dtype=float)), length=2
+        np.diff(np.asarray([0.0, 0.5, 1.0, 1.5], dtype=float)), length=2
     )
     np.testing.assert_array_equal(rs.segments, expected.segments)
 
@@ -203,6 +228,11 @@ def test_rs_from_events_preserves_nan_boundaries():
     rs_intervals = RhythmicSegments.from_intervals(intervals, length=2)
     assert rs_events.count == rs_intervals.count
     np.testing.assert_array_equal(rs_events.segments, rs_intervals.segments)
+
+
+def test_rs_from_events_requires_enough_events():
+    with pytest.raises(ValueError):
+        RhythmicSegments.from_events([0.0, 0.5, 1.0], length=3)
 
 
 def test_rs_from_segments():

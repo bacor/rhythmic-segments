@@ -9,4 +9,6 @@ The documentation below is generated automatically from the source code using
 
 segments <../autoapi/rhythmic_segments/segments/index>
 patterns <../autoapi/rhythmic_segments/patterns/index>
+helpers <../autoapi/rhythmic_segments/helpers/index>
+meta <../autoapi/rhythmic_segments/meta/index>
 ```

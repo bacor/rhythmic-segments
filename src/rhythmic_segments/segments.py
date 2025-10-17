@@ -16,137 +16,8 @@ import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 
-from .utils import is_nan
-
-
-def split_blocks(
-    intervals: Iterable[float],
-    *,
-    separator: Any = np.nan,
-    drop_empty: bool = True,
-    copy: bool = True,
-) -> List[np.ndarray]:
-    """Split *intervals* into contiguous blocks using *separator* as delimiter.
-
-    >>> import numpy as np
-    >>> split_blocks([1, 2, np.nan, 3])
-    [array([1., 2.]), array([3.])]
-    >>> split_blocks([1, 2, 3], separator=None)
-    [array([1., 2., 3.])]
-    """
-
-    arr = np.asarray(intervals, dtype=float)
-    if arr.ndim != 1:
-        raise ValueError("intervals must be one-dimensional")
-
-    boundary_mask = (
-        np.array([is_nan(value) for value in arr], dtype=bool)
-        if is_nan(separator)
-        else arr == separator
-    )
-
-    blocks: List[np.ndarray] = []
-    start = 0
-    for idx in np.flatnonzero(boundary_mask):
-        section = arr[start:idx]
-        if section.size > 0 or not drop_empty:
-            blocks.append(section.copy() if copy else section)
-        start = idx + 1
-
-    tail = arr[start:]
-    if tail.size > 0 or not drop_empty:
-        blocks.append(tail.copy() if copy else tail)
-    return blocks
-
-
-def _split_meta_blocks(meta: pd.DataFrame, intervals: np.ndarray) -> List[pd.DataFrame]:
-    """Split metadata to mirror interval blocks.
-
-    >>> intervals = np.array([0.5, 1.0, np.nan, 0.75])
-    >>> meta = pd.DataFrame({'label': ['a', 'b', 'nan', 'c']})
-    >>> [block['label'].tolist() for block in _split_meta_blocks(meta, intervals)]
-    [['a', 'b'], ['c']]
-    """
-
-    blocks: List[pd.DataFrame] = []
-    start = 0
-    for idx, value in enumerate(intervals):
-        if np.isnan(value):
-            block = meta.iloc[start:idx]
-            if len(block) > 0:
-                blocks.append(block.reset_index(drop=True))
-            start = idx + 1
-    block = meta.iloc[start:]
-    if len(block) > 0:
-        blocks.append(block.reset_index(drop=True))
-    return blocks
-
-
-def _coerce_meta_frame(
-    meta: Any,
-    expected_rows: int,
-    missing_rows_message: str,
-) -> pd.DataFrame:
-    """Return *meta* as a DataFrame with ``expected_rows`` rows.
-
-    Returns an empty DataFrame with the requested number of rows
-    when meta is None.
-
-    Parameters
-    ----------
-    meta : Any
-        Input metadata convertible to :class:`pandas.DataFrame`.
-    expected_rows : int
-        Required number of rows once converted.
-    missing_rows_message : str
-        Error message raised when the row count does not match.
-    """
-
-    if meta is None:
-        return pd.DataFrame(index=pd.RangeIndex(expected_rows))
-
-    if isinstance(meta, pd.DataFrame):
-        meta_df = meta
-    else:
-        try:
-            meta_df = pd.DataFrame(meta)
-        except Exception as exc:  # pragma: no cover - defensive
-            raise TypeError("meta must be convertible to a pandas DataFrame") from exc
-    meta_df = meta_df.reset_index(drop=True)
-    if len(meta_df) != expected_rows:
-        raise ValueError(missing_rows_message)
-    return meta_df
-
-
-def _aggregate_meta(
-    meta_blocks: Iterable[Optional[pd.DataFrame]],
-    blocks: Iterable[np.ndarray],
-    length: int,
-    meta_aggregator: Callable[[pd.DataFrame], Mapping[str, Any]],
-    expected_segments: int,
-) -> pd.DataFrame:
-    """Aggregate per-interval metadata into per-segment records."""
-
-    aggregated_meta: List[Mapping[str, Any]] = []
-    for block_meta, block in zip(meta_blocks, blocks):
-        if block_meta is None:
-            continue
-        if len(block_meta) != len(block):
-            raise ValueError("meta rows must match intervals within each block")
-        for start in range(len(block) - length + 1):
-            window = block_meta.iloc[start : start + length]
-            aggregated = meta_aggregator(window)
-            if isinstance(aggregated, pd.Series):
-                aggregated = aggregated.to_dict()
-            elif not isinstance(aggregated, Mapping):
-                raise TypeError(
-                    "meta_aggregator must return a mapping or pandas Series"
-                )
-            aggregated_meta.append(aggregated)
-
-    if len(aggregated_meta) != expected_segments:
-        raise ValueError("Aggregated metadata must match number of segments")
-    return pd.DataFrame(aggregated_meta)
+from .helpers import split_into_blocks
+from .meta import aggregate_meta, coerce_meta_frame
 
 
 def extract_segments(
@@ -155,8 +26,8 @@ def extract_segments(
     *,
     warn_on_short: bool = True,
     copy: bool = True,
-    allow_zero: bool = False,
-    drop_zeros: bool = False,
+    check_zero_intervals: bool = True,
+    check_nan_intervals: bool = True,
 ) -> np.ndarray:
     """Return a vectorized sliding-window matrix of interval segments.
 
@@ -164,7 +35,7 @@ def extract_segments(
     ----------
     intervals : Iterable[float]
         Contiguous numeric intervals. Inputs containing ``np.nan`` must be
-        pre-split via :func:`split_blocks`.
+        pre-split via :func:`rhythmic_segments.helpers.split_into_blocks`.
     length : int
         Window size of each produced segment.
     warn_on_short : bool, optional
@@ -172,8 +43,8 @@ def extract_segments(
         no segments can be formed.
     copy : bool, optional
         Return a copy of the data (default) instead of a view.
-    allow_zero, drop_zeros : bool, optional
-        Control whether zero-valued intervals are permitted or removed.
+    check_zero_intervals, check_nan_intervals : bool, optional
+        Enable validation that forbids zero or NaN intervals, respectively.
 
     Returns
     -------
@@ -188,7 +59,7 @@ def extract_segments(
     array([[1., 2., 3.],
            [2., 3., 4.],
            [3., 4., 5.]])
-    >>> extract_segments([1, 0, 2], 2, allow_zero=True)
+    >>> extract_segments([1, 0, 2], 2, check_zero_intervals=False)
     array([[1., 0.],
            [0., 2.]])
     """
@@ -200,14 +71,14 @@ def extract_segments(
     if arr.ndim != 1:
         raise ValueError("intervals must be one-dimensional")
 
-    if drop_zeros:
-        arr = arr[arr != 0]
-    elif not allow_zero and np.any(arr == 0):
-        raise ValueError("intervals contain zeros; enable allow_zero or drop_zeros")
-
-    if np.any(np.isnan(arr)):
+    if check_zero_intervals and np.any(arr == 0):
         raise ValueError(
-            "Intervals contain NaN values; preprocess with split_blocks()."
+            "intervals contain zeros; disable check_zero_intervals to allow them"
+        )
+
+    if check_nan_intervals and np.any(np.isnan(arr)):
+        raise ValueError(
+            "Intervals contain NaN values; disable check_nan_intervals or preprocess with split_into_blocks()."
         )
 
     if arr.size < length:
@@ -335,12 +206,12 @@ class RhythmicSegments:
             length = inferred_length
         elif length != inferred_length:
             raise ValueError("Provided length does not match segment width")
-        if length < 2:
+        if length < 2:  # type: ignore
             raise ValueError("segment length must be at least 2")
 
         patterns, durations = normalize_segments(segments)
 
-        meta_df = _coerce_meta_frame(
+        meta_df = coerce_meta_frame(
             meta,
             expected_rows=len(segments),
             missing_rows_message="meta must have the same number of rows as segments",
@@ -362,11 +233,10 @@ class RhythmicSegments:
         split_at_nan: bool = True,
         warn_on_short: bool = True,
         copy: bool = True,
-        drop_zeros: bool = False,
-        allow_zero: bool = False,
-        dtype: np.dtype = np.dtype("float32"),
+        check_zero_intervals: bool = True,
         meta: Optional[Any] = None,
-        meta_aggregator: Optional[Callable[[pd.DataFrame], Mapping[str, Any]]] = None,
+        meta_agg: Optional[Callable[[pd.DataFrame], Mapping[str, Any]]] = None,
+        **from_segments_kwargs: Any,
     ) -> "RhythmicSegments":
         """Create an instance from sequential interval data.
 
@@ -380,19 +250,19 @@ class RhythmicSegments:
         split_at_nan : bool, optional
             If ``True`` (default) split the interval stream on ``np.nan``
             boundaries before extraction.
-        warn_on_short, copy, drop_zeros, allow_zero : bool
-            Forwarded to :func:`extract_segments` for each contiguous block.
-        dtype : numpy.dtype, optional
-            Target dtype for the internal arrays passed to :meth:`from_segments`.
+        warn_on_short, copy, check_zero_intervals : bool, optional
+            Forwarded to :func:`extract_segments` (see that function for details).
         meta : Optional[Any]
             Optional metadata with one row per input interval. Anything that can
             be converted to :class:`pandas.DataFrame` is accepted. Rows
             corresponding to ``np.nan`` boundaries are dropped automatically
             when ``split_at_nan`` is ``True``.
-        meta_aggregator : Optional[Callable[[pandas.DataFrame], Mapping[str, Any]]]
+        meta_agg : Optional[Callable[[pandas.DataFrame], Mapping[str, Any]]]
             Aggregation function that converts per-interval metadata into a
             single record for each produced segment. Required when ``meta`` is
             supplied.
+        **from_segments_kwargs : Any
+            Additional keyword arguments forwarded to :meth:`from_segments`.
 
         Examples
         --------
@@ -430,7 +300,7 @@ class RhythmicSegments:
         >>> intervals = [0.5, 1.0, np.nan, 0.75, 1.0]
         >>> meta = {'label': ['a', 'b', 'nan', 'c', 'd']}
         >>> agg = lambda df: {'labels': '-'.join(df['label'])}
-        >>> rs = RhythmicSegments.from_intervals(intervals, length=2, meta=meta, meta_aggregator=agg)
+        >>> rs = RhythmicSegments.from_intervals(intervals, length=2, meta=meta, meta_agg=agg)
         >>> rs.segments
         array([[0.5 , 1.  ],
            [0.75, 1.  ]], dtype=float32)
@@ -440,66 +310,97 @@ class RhythmicSegments:
         If the number of intervals is smaller than the segment length, a warning is thrown,
         this can be turned off using the warn_on_short flag:
 
-        >>> rs = RhythmicSegments.from_intervals([1, 2], length=3, warn_on_short=False)
+        >>> RhythmicSegments.from_intervals([1, 2], length=3)
+        Traceback (most recent call last):
+        ...
+        ValueError: At least three intervals are required to form segments of length >= 2.
 
         """
+        # Validate args
+        if meta is not None and meta_agg is None:
+            raise ValueError("meta_agg must be provided when meta is supplied")
 
-        arr = np.asarray(list(intervals), dtype=float)
-
-        blocks: List[np.ndarray]
-        if split_at_nan and np.any(np.isnan(arr)):
-            blocks = split_blocks(arr, drop_empty=True, copy=False)
-        else:
-            if np.isnan(arr).any():
-                raise ValueError(
-                    "Intervals contain NaN values; enable split_at_nan or preprocess via split_blocks()."
-                )
-            blocks = [arr]
-
-        matrices: List[np.ndarray] = []
-        for block in blocks:
-            block_segments = extract_segments(
-                block,
-                length,
-                warn_on_short=warn_on_short,
-                copy=copy,
-                drop_zeros=drop_zeros,
-                allow_zero=allow_zero,
+        conflict_keys = {"segments", "meta", "length", "dtype"}.intersection(
+            from_segments_kwargs
+        )
+        if conflict_keys:
+            keys = ", ".join(sorted(conflict_keys))
+            raise TypeError(
+                "from_intervals manages the following keyword arguments internally: "
+                f"{keys}. Please remove them from **from_segments_kwargs."
             )
-            count = block_segments.shape[0]
-            if count:
-                matrices.append(block_segments)
 
-        if matrices:
-            segments_matrix = np.concatenate(matrices, axis=0)
+        # Coerce input to numpy array and ensure sufficient length
+        if isinstance(intervals, np.ndarray):
+            intervals_arr = intervals.astype(float, copy=False)
+        elif isinstance(intervals, pd.Series):
+            intervals_arr = intervals.to_numpy(dtype=float, copy=False)
         else:
-            segments_matrix = np.empty((0, length), dtype=float)
+            intervals_arr = np.asarray(list(intervals), dtype=float)
+        if intervals_arr.size < 3:
+            raise ValueError(
+                "At least three intervals are required to form segments of length >= 2."
+            )
+        if intervals_arr.size < length:
+            raise ValueError(
+                f"Not enough intervals to form a segment of length {length}; requires at least {length} intervals."
+            )
 
-        if meta is None:
-            meta_df = None
+        # Split intervals into blocks
+        has_nan = np.isnan(intervals_arr).any()
+        if not split_at_nan and has_nan:
+            raise ValueError(
+                "Intervals contain NaN values; enable split_at_nan or preprocess via split_into_blocks()."
+            )
+        elif has_nan:
+            boundaries = np.isnan(intervals_arr)
+            blocks = split_into_blocks(
+                intervals_arr,
+                boundaries=boundaries,
+                drop_empty=True,
+                copy=False,
+            )
         else:
-            meta_df = _coerce_meta_frame(
+            blocks = [intervals_arr]
+
+        # Extract all segments from all blocks and combine them
+        kws = dict(
+            warn_on_short=warn_on_short,
+            copy=copy,
+            check_zero_intervals=check_zero_intervals,
+            check_nan_intervals=False,
+        )
+        block_segments = [extract_segments(block, length, **kws) for block in blocks]  # type: ignore
+        segments = np.concatenate(block_segments, axis=0)
+
+        # Aggregate interval metadata to segment metadata
+        segment_meta: Optional[pd.DataFrame] = None
+        if meta is not None:
+            meta = coerce_meta_frame(
                 meta,
-                expected_rows=len(arr),
+                expected_rows=len(intervals_arr),
                 missing_rows_message="meta must have the same number of rows as intervals",
             )
-            meta_blocks = (
-                _split_meta_blocks(meta_df, arr) if split_at_nan else [meta_df]
-            )
-            if meta_aggregator is None:
-                raise ValueError(
-                    "meta_aggregator must be provided when meta is supplied"
-                )
-            meta_df = _aggregate_meta(
-                meta_blocks,
+
+            if split_at_nan and has_nan:
+                boundaries = np.isnan(intervals_arr)
+                meta_blocks = split_into_blocks(meta, boundaries=boundaries)
+            else:
+                meta_blocks = [meta]
+
+            segment_meta = aggregate_meta(
+                meta_blocks,  # type: ignore
                 blocks,
-                length,
-                meta_aggregator,
-                segments_matrix.shape[0],
+                window_len=length,
+                meta_agg=meta_agg,  # type: ignore
+                expected_records=segments.shape[0],
             )
 
         return RhythmicSegments.from_segments(
-            segments_matrix, length=length, meta=meta_df, dtype=dtype
+            segments,
+            length=length,
+            meta=segment_meta,
+            **from_segments_kwargs,
         )
 
     @staticmethod
@@ -507,14 +408,11 @@ class RhythmicSegments:
         events: Iterable[Any],
         length: int,
         *,
-        drop_na: bool = False,
-        split_at_nan: bool = True,
-        allow_zero_intervals: bool = False,
-        warn_on_short: bool = True,
-        copy: bool = True,
-        dtype: np.dtype = np.dtype("float32"),
+        drop_nan: bool = False,
         meta: Optional[Any] = None,
-        meta_aggregator: Optional[Callable[[pd.DataFrame], Mapping[str, Any]]] = None,
+        event_meta_agg: Optional[Callable[[pd.DataFrame], Mapping[str, Any]]] = None,
+        segment_meta_agg: Optional[Callable[[pd.DataFrame], Mapping[str, Any]]] = None,
+        **from_intervals_kwargs: Any,
     ) -> "RhythmicSegments":
         """Create an instance from timestamped event data.
 
@@ -525,26 +423,26 @@ class RhythmicSegments:
             convertible to ``float``.
         length : int
             Segment length passed to :meth:`from_intervals`. Must be at least ``2``.
-        drop_na : bool, optional
+        drop_nan : bool, optional
             Remove ``NaN`` timestamps before differencing. When ``False``
             (default), the resulting interval stream will contain ``NaN``
             markers wherever the original event data did, which in turn act as
             block boundaries for :meth:`from_intervals`.
-        split_at_nan : bool, optional
-            Forwarded to :meth:`from_intervals`; controls whether extracted
-            segments can span across ``NaN`` interval boundaries.
-        allow_zero_intervals : bool, optional
-            Allow identical consecutive events (zero-length intervals). When
-            ``False`` (default) such ties raise a :class:`ValueError`.
-        warn_on_short, copy : bool, optional
-            Forwarded to :meth:`from_intervals`.
-        dtype : numpy.dtype, optional
-            Target dtype for the internal arrays passed to :meth:`from_segments`.
+        **from_intervals_kwargs : Any
+            Additional keyword arguments forwarded to :meth:`from_intervals`,
+            such as ``split_at_nan`` or ``dtype``.
         meta : Optional[Any]
-            Optional metadata aligned with the derived intervals, i.e. it must
-            contain exactly ``len(events) - 1`` rows after any ``NaN`` removal.
-        meta_aggregator : Optional[Callable[[pandas.DataFrame], Mapping[str, Any]]]
-            Forwarded to :meth:`from_intervals`.
+            Optional metadata aligned with the input events. Anything that can be
+            converted to :class:`pandas.DataFrame` is accepted. When
+            ``drop_nan=True`` the rows corresponding to dropped events are
+            removed automatically.
+        event_meta_agg : Optional[Callable[[pandas.DataFrame], Mapping[str, Any]]]
+            Aggregation function that combines metadata for pairs of consecutive
+            events into per-interval records. Required when ``meta`` is supplied
+            and at least one interval can be formed.
+        segment_meta_agg : Optional[Callable[[pandas.DataFrame], Mapping[str, Any]]]
+            Forwarded to :meth:`from_intervals` to transform per-interval
+            metadata into per-segment records.
 
         Examples
         --------
@@ -555,70 +453,86 @@ class RhythmicSegments:
            [0.5, 0.5]], dtype=float32)
 
         Segments never span the ``np.nan`` boundary. To discard the boundary
-        entirely, enable ``drop_na=True``:
+        entirely, enable ``drop_nan=True``:
 
-        >>> RhythmicSegments.from_events(events, length=2, drop_na=True).segments
+        >>> RhythmicSegments.from_events(events, length=2, drop_nan=True).segments
         array([[0.5, 0.5],
             [0.5, 0.5],
             [0.5, 0.5],
             [0.5, 0.5]], dtype=float32)
 
-        Passing ``split_at_nan=False`` while retaining the ``NaN`` intervals
-        raises an error because :meth:`from_intervals` forbids segments crossing
+        Note that passing ``split_at_nan=False`` while retaining the ``NaN`` intervals
+        will raise an error because :meth:`from_intervals` forbids segments crossing
         the boundary:
 
         >>> RhythmicSegments.from_events(events, length=2, split_at_nan=False)
         Traceback (most recent call last):
         ...
-        ValueError: Intervals contain NaN values; enable split_at_nan or preprocess via split_blocks().
+        ValueError: Intervals contain NaN values; enable split_at_nan or preprocess via split_into_blocks().
         """
 
-        events_arr = np.asarray(list(events), dtype=float)
+        # Validate all input
+        from_intervals_kwargs = dict(from_intervals_kwargs)
+        if "meta_agg" in from_intervals_kwargs:
+            raise TypeError(
+                "'meta_agg' is not an allowed keyword. From_events 'segment_meta_agg' for segment-level aggregation."
+            )
+        if meta is not None and event_meta_agg is None:
+            raise ValueError("event_meta_agg must be provided when meta is supplied")
+        if isinstance(events, np.ndarray):
+            events_arr = events.astype(float, copy=False)
+        elif isinstance(events, pd.Series):
+            events_arr = events.to_numpy(dtype=float, copy=False)
+        else:
+            events_arr = np.asarray(list(events), dtype=float)
         if events_arr.ndim != 1:
             raise ValueError("events must be one-dimensional")
+        if events_arr.size < length + 1:
+            raise ValueError(
+                "Not enough events to form a segment of length "
+                f"{length}; requires at least {length + 1} events."
+            )
 
-        if drop_na:
-            events_arr = events_arr[~np.isnan(events_arr)]
+        # Coerce the metadata into a pandas dataframe
+        if meta is not None:
+            meta = coerce_meta_frame(
+                meta,
+                expected_rows=len(events_arr),
+                missing_rows_message="meta must have the same number of rows as events",
+            )
 
-        if events_arr.size > 1:
-            # Note that this results in two np.na values for every np.na in the input.
-            # However, from_intervals handles that fine, so that's no problem.
-            intervals = np.diff(events_arr)
-        else:
-            intervals = np.empty(0, dtype=float)
+        # Optionally drop NaN entries from both events and metadata
+        if drop_nan:
+            keep_mask = ~np.isnan(events_arr)
+            events_arr = events_arr[keep_mask]
+            if meta is not None:
+                meta = meta.loc[keep_mask].reset_index(drop=True)
 
+        # Computer intervals (event differences) and check they're positive
+        # Note that this results in two np.na values for every np.na in the input.
+        # However, from_intervals handles that fine, so that's no problem.
+        intervals = np.diff(events_arr)
         finite_intervals = intervals[np.isfinite(intervals)]
         if np.any(finite_intervals < 0):
             raise ValueError("events must be in non-decreasing order")
-        if not allow_zero_intervals and np.any(finite_intervals == 0):
-            raise ValueError(
-                "events contain zero-length intervals; enable allow_zero_intervals=True to permit ties"
-            )
 
-        interval_meta: Optional[pd.DataFrame]
-        if meta is None:
-            interval_meta = None
-        else:
-            expected_rows = intervals.size
-            interval_meta = _coerce_meta_frame(
-                meta,
-                expected_rows=expected_rows,
-                missing_rows_message=(
-                    "meta must have the same number of rows as derived intervals "
-                    "(len(events) - 1)"
-                ),
+        # Aggregate event meta to interval meta
+        interval_meta: Optional[pd.DataFrame] = None
+        if meta is not None:
+            interval_meta = aggregate_meta(
+                meta_blocks=[meta],
+                value_blocks=[np.arange(len(meta), dtype=float)],
+                window_len=2,
+                meta_agg=event_meta_agg,  # type: ignore
+                expected_records=intervals.size,
             )
 
         return RhythmicSegments.from_intervals(
             intervals,
             length=length,
-            split_at_nan=split_at_nan,
-            warn_on_short=warn_on_short,
-            copy=copy,
-            allow_zero=allow_zero_intervals,
-            dtype=dtype,
             meta=interval_meta,
-            meta_aggregator=meta_aggregator,
+            meta_agg=segment_meta_agg,
+            **from_intervals_kwargs,
         )
 
     @staticmethod
