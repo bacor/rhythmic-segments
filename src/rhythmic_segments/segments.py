@@ -404,8 +404,10 @@ class RhythmicSegments:
         >>> RhythmicSegments.from_intervals([1, 2], length=3)
         Traceback (most recent call last):
         ...
-        ValueError: At least three intervals are required to form segments of length >= 2.
+        ValueError: Not enough intervals to form a segment of length 3; requires at least 3 intervals.
 
+        >>> RhythmicSegments.from_intervals([1, 2], length=2)
+        RhythmicSegments(segment_length=2, n_segments=1, n_meta_cols=0, segments=[[1., 2.]])
         """
         # Coerce input to numpy array and ensure sufficient length
         intervals_arr, interval_meta = process_input_data(
@@ -418,10 +420,6 @@ class RhythmicSegments:
         )
         if meta_agg is None:
             meta_agg = _AGG_COPY
-        if intervals_arr.size < 3:
-            raise ValueError(
-                "At least three intervals are required to form segments of length >= 2."
-            )
         if intervals_arr.size < length:
             raise ValueError(
                 f"Not enough intervals to form a segment of length {length}; requires at least {length} intervals."
@@ -475,7 +473,10 @@ class RhythmicSegments:
             const_dict = dict(meta_constants)
             if segment_meta is None:
                 segment_meta = pd.DataFrame(
-                    {key: [value] * segments.shape[0] for key, value in const_dict.items()}
+                    {
+                        key: [value] * segments.shape[0]
+                        for key, value in const_dict.items()
+                    }
                 )
             else:
                 segment_meta = segment_meta.assign(**const_dict)
