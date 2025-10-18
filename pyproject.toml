@@ -1,6 +1,6 @@
 [project]
 name = "rhythmic_segments"
-version = "0.1.8"
+version = "0.1.9"
 description = "Research code for basic Rhythmic Segment Analysis."
 authors = [
     {name = "Bas Cornelissen",email = "mail@bascornelissen.nl"}
