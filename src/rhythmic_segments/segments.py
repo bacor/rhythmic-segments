@@ -10,14 +10,14 @@ import warnings
 
 from dataclasses import dataclass, replace
 from collections.abc import Mapping
-from typing import Any, Callable, Iterable, List, Optional, Union, Tuple
+from typing import Any, Iterable, List, Optional, Union, Tuple
 
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 
 from .helpers import split_into_blocks
-from .meta import aggregate_meta, coerce_meta_frame
+from .meta import Aggregator, aggregate_meta, coerce_meta_frame, get_aggregator
 
 
 def extract_segments(
@@ -118,6 +118,76 @@ def normalize_segments(
     return normalized, duration
 
 
+def process_input_data(
+    data: Any,
+    *,
+    column: Optional[str],
+    meta: Optional[Any],
+    meta_columns: Optional[Iterable[str]],
+    meta_constants: Optional[Mapping[str, Any]],
+    data_label: str,
+) -> Tuple[np.ndarray, Optional[pd.DataFrame]]:
+    """Return numeric data and processed metadata extracted from *data*.
+
+    When *column* is provided and *meta* is supplied, the explicit metadata
+    takes precedence over the inferred DataFrame columns. Metadata selection
+    via *meta_columns* and constant assignments from *meta_constants* are
+    applied before returning the DataFrame.
+    """
+    # No column specified; no need to separate input from metadata
+    if column is None:
+        if isinstance(data, pd.DataFrame):
+            raise TypeError(
+                f"When passing a DataFrame to {data_label}, 'column' must be specified."
+            )
+        if isinstance(data, np.ndarray):
+            vector = data.astype(float, copy=False)
+        elif isinstance(data, pd.Series):
+            vector = data.to_numpy(dtype=float, copy=False)
+        else:
+            vector = np.asarray(list(data), dtype=float)
+        meta_source = meta
+
+    # Separate metadata from input data
+    else:
+        if isinstance(data, pd.DataFrame):
+            df = data
+        else:
+            try:
+                df = pd.DataFrame(data)
+            except Exception as exc:  # pragma: no cover - defensive
+                raise TypeError(
+                    f"{data_label.capitalize()} must be convertible to a pandas DataFrame when 'column' is provided."
+                ) from exc
+        if column not in df.columns:
+            raise KeyError(f"Column '{column}' not found in provided {data_label}.")
+        vector = df[column].to_numpy(dtype=float, copy=False)
+        inferred_meta = df.drop(columns=[column]).reset_index(drop=True)
+        meta_source = meta if meta is not None else inferred_meta
+
+    expected_rows = len(vector)
+    if meta_source is None and meta_columns is None and meta_constants is None:
+        return vector, None
+
+    meta_frame_source = (
+        meta_source
+        if meta_source is not None
+        else pd.DataFrame(index=pd.RangeIndex(expected_rows))
+    )
+    meta_df = coerce_meta_frame(
+        meta_frame_source,
+        expected_rows=expected_rows,
+        missing_rows_message=f"meta must have the same number of rows as {data_label}",
+        columns=meta_columns,
+        constants=meta_constants,
+    )
+    return vector, meta_df
+
+
+_AGG_COPY: Aggregator = get_aggregator("copy")
+_AGG_FIRST: Aggregator = get_aggregator("first")
+
+
 @dataclass(frozen=True)
 class RhythmicSegments:
     """Immutable container for rhythmic segment matrices.
@@ -166,6 +236,8 @@ class RhythmicSegments:
         *,
         length: Optional[int] = None,
         meta: Optional[Any] = None,
+        meta_columns: Optional[Iterable[str]] = None,
+        meta_constants: Optional[Mapping[str, Any]] = None,
         dtype=np.dtype("float32"),
     ) -> "RhythmicSegments":
         """Create an instance from a precomputed segment matrix.
@@ -180,6 +252,11 @@ class RhythmicSegments:
         meta : Optional[Any]
             Per-segment metadata; anything convertible to :class:`pandas.DataFrame`
             with one row per segment.
+        meta_columns : Optional[Iterable[str]], optional
+            Names of metadata columns to retain. When ``None`` all columns are
+            kept.
+        meta_constants : Optional[Mapping[str, Any]], optional
+            Constant metadata columns to add.
         dtype : data-type, optional
             Target dtype for the internal arrays. Defaults to ``np.float32``.
 
@@ -215,6 +292,8 @@ class RhythmicSegments:
             meta,
             expected_rows=len(segments),
             missing_rows_message="meta must have the same number of rows as segments",
+            columns=meta_columns,
+            constants=meta_constants,
         )
 
         return RhythmicSegments(
@@ -234,8 +313,11 @@ class RhythmicSegments:
         warn_on_short: bool = True,
         copy: bool = True,
         check_zero_intervals: bool = True,
+        column: Optional[str] = None,
         meta: Optional[Any] = None,
-        meta_agg: Optional[Callable[[pd.DataFrame], Mapping[str, Any]]] = None,
+        meta_columns: Optional[Iterable[str]] = None,
+        meta_constants: Optional[Mapping[str, Any]] = None,
+        meta_agg: Optional[Aggregator] = _AGG_COPY,
         **from_segments_kwargs: Any,
     ) -> "RhythmicSegments":
         """Create an instance from sequential interval data.
@@ -252,15 +334,24 @@ class RhythmicSegments:
             boundaries before extraction.
         warn_on_short, copy, check_zero_intervals : bool, optional
             Forwarded to :func:`extract_segments` (see that function for details).
+        column : Optional[str], optional
+            When provided, ``intervals`` must be DataFrame-like and the selected
+            column supplies the numeric intervals. All remaining columns are
+            treated as metadata.
         meta : Optional[Any]
             Optional metadata with one row per input interval. Anything that can
-            be converted to :class:`pandas.DataFrame` is accepted. Rows
-            corresponding to ``np.nan`` boundaries are dropped automatically
-            when ``split_at_nan`` is ``True``.
-        meta_agg : Optional[Callable[[pandas.DataFrame], Mapping[str, Any]]]
+            be converted to :class:`pandas.DataFrame` is accepted. Ignored when
+            ``column`` is provided. Rows corresponding to ``np.nan`` boundaries
+            are dropped automatically when ``split_at_nan`` is ``True``.
+        meta_columns : Optional[Iterable[str]], optional
+            Names of metadata columns to retain. When ``None`` all columns are
+            kept.
+        meta_constants : Optional[Mapping[str, Any]], optional
+            Constant metadata columns to add to each resulting segment.
+        meta_agg : Aggregator
             Aggregation function that converts per-interval metadata into a
-            single record for each produced segment. Required when ``meta`` is
-            supplied.
+            single record for each produced segment. Defaults to
+            :func:`get_aggregator("copy")`.
         **from_segments_kwargs : Any
             Additional keyword arguments forwarded to :meth:`from_segments`.
 
@@ -316,27 +407,17 @@ class RhythmicSegments:
         ValueError: At least three intervals are required to form segments of length >= 2.
 
         """
-        # Validate args
-        if meta is not None and meta_agg is None:
-            raise ValueError("meta_agg must be provided when meta is supplied")
-
-        conflict_keys = {"segments", "meta", "length", "dtype"}.intersection(
-            from_segments_kwargs
-        )
-        if conflict_keys:
-            keys = ", ".join(sorted(conflict_keys))
-            raise TypeError(
-                "from_intervals manages the following keyword arguments internally: "
-                f"{keys}. Please remove them from **from_segments_kwargs."
-            )
-
         # Coerce input to numpy array and ensure sufficient length
-        if isinstance(intervals, np.ndarray):
-            intervals_arr = intervals.astype(float, copy=False)
-        elif isinstance(intervals, pd.Series):
-            intervals_arr = intervals.to_numpy(dtype=float, copy=False)
-        else:
-            intervals_arr = np.asarray(list(intervals), dtype=float)
+        intervals_arr, interval_meta = process_input_data(
+            intervals,
+            column=column,
+            meta=meta,
+            meta_columns=meta_columns,
+            meta_constants=None,
+            data_label="intervals",
+        )
+        if meta_agg is None:
+            meta_agg = _AGG_COPY
         if intervals_arr.size < 3:
             raise ValueError(
                 "At least three intervals are required to form segments of length >= 2."
@@ -375,18 +456,12 @@ class RhythmicSegments:
 
         # Aggregate interval metadata to segment metadata
         segment_meta: Optional[pd.DataFrame] = None
-        if meta is not None:
-            meta = coerce_meta_frame(
-                meta,
-                expected_rows=len(intervals_arr),
-                missing_rows_message="meta must have the same number of rows as intervals",
-            )
-
+        if interval_meta is not None:
             if split_at_nan and has_nan:
                 boundaries = np.isnan(intervals_arr)
-                meta_blocks = split_into_blocks(meta, boundaries=boundaries)
+                meta_blocks = split_into_blocks(interval_meta, boundaries=boundaries)
             else:
-                meta_blocks = [meta]
+                meta_blocks = [interval_meta]
 
             segment_meta = aggregate_meta(
                 meta_blocks,  # type: ignore
@@ -395,6 +470,15 @@ class RhythmicSegments:
                 meta_agg=meta_agg,  # type: ignore
                 expected_records=segments.shape[0],
             )
+
+        if meta_constants:
+            const_dict = dict(meta_constants)
+            if segment_meta is None:
+                segment_meta = pd.DataFrame(
+                    {key: [value] * segments.shape[0] for key, value in const_dict.items()}
+                )
+            else:
+                segment_meta = segment_meta.assign(**const_dict)
 
         return RhythmicSegments.from_segments(
             segments,
@@ -409,9 +493,12 @@ class RhythmicSegments:
         length: int,
         *,
         drop_nan: bool = False,
+        column: Optional[str] = None,
         meta: Optional[Any] = None,
-        event_meta_agg: Optional[Callable[[pd.DataFrame], Mapping[str, Any]]] = None,
-        segment_meta_agg: Optional[Callable[[pd.DataFrame], Mapping[str, Any]]] = None,
+        meta_columns: Optional[Iterable[str]] = None,
+        meta_constants: Optional[Mapping[str, Any]] = None,
+        interval_meta_agg: Optional[Aggregator] = _AGG_FIRST,
+        segment_meta_agg: Optional[Aggregator] = _AGG_COPY,
         **from_intervals_kwargs: Any,
     ) -> "RhythmicSegments":
         """Create an instance from timestamped event data.
@@ -428,21 +515,32 @@ class RhythmicSegments:
             (default), the resulting interval stream will contain ``NaN``
             markers wherever the original event data did, which in turn act as
             block boundaries for :meth:`from_intervals`.
+        column : Optional[str], optional
+            When provided, ``events`` must be DataFrame-like and the specified
+            column supplies the timestamp values. All remaining columns are
+            treated as metadata.
+        meta : Optional[Any]
+            Optional metadata aligned with the input events. Anything that can be
+            converted to :class:`pandas.DataFrame` is accepted. Ignored when
+            ``column`` is provided. When
+            ``drop_nan=True`` the rows corresponding to dropped events are
+            removed automatically.
+        meta_columns : Optional[Iterable[str]], optional
+            Names of metadata columns to retain. When ``None`` all columns are
+            preserved.
+        meta_constants : Optional[Mapping[str, Any]], optional
+            Constant metadata columns to add to each resulting segment.
+        interval_meta_agg : Aggregator
+            Aggregation function that combines metadata for pairs of consecutive
+            events into per-interval records. Defaults to
+            :func:`get_aggregator("first")`.
+        segment_meta_agg : Aggregator
+            Forwarded to :meth:`from_intervals` to transform per-interval
+            metadata into per-segment records. Defaults to
+            :func:`get_aggregator("copy")`.
         **from_intervals_kwargs : Any
             Additional keyword arguments forwarded to :meth:`from_intervals`,
             such as ``split_at_nan`` or ``dtype``.
-        meta : Optional[Any]
-            Optional metadata aligned with the input events. Anything that can be
-            converted to :class:`pandas.DataFrame` is accepted. When
-            ``drop_nan=True`` the rows corresponding to dropped events are
-            removed automatically.
-        event_meta_agg : Optional[Callable[[pandas.DataFrame], Mapping[str, Any]]]
-            Aggregation function that combines metadata for pairs of consecutive
-            events into per-interval records. Required when ``meta`` is supplied
-            and at least one interval can be formed.
-        segment_meta_agg : Optional[Callable[[pandas.DataFrame], Mapping[str, Any]]]
-            Forwarded to :meth:`from_intervals` to transform per-interval
-            metadata into per-segment records.
 
         Examples
         --------
@@ -471,20 +569,27 @@ class RhythmicSegments:
         ValueError: Intervals contain NaN values; enable split_at_nan or preprocess via split_into_blocks().
         """
 
-        # Validate all input
         from_intervals_kwargs = dict(from_intervals_kwargs)
         if "meta_agg" in from_intervals_kwargs:
             raise TypeError(
                 "'meta_agg' is not an allowed keyword. From_events 'segment_meta_agg' for segment-level aggregation."
             )
-        if meta is not None and event_meta_agg is None:
-            raise ValueError("event_meta_agg must be provided when meta is supplied")
-        if isinstance(events, np.ndarray):
-            events_arr = events.astype(float, copy=False)
-        elif isinstance(events, pd.Series):
-            events_arr = events.to_numpy(dtype=float, copy=False)
-        else:
-            events_arr = np.asarray(list(events), dtype=float)
+
+        # Validate all input
+        events_arr, event_meta = process_input_data(
+            events,
+            column=column,
+            meta=meta,
+            meta_columns=meta_columns,
+            meta_constants=None,
+            data_label="events",
+        )
+        if meta_constants is not None and "meta_constants" not in from_intervals_kwargs:
+            from_intervals_kwargs["meta_constants"] = meta_constants
+        if interval_meta_agg is None:
+            interval_meta_agg = _AGG_FIRST
+        if segment_meta_agg is None:
+            segment_meta_agg = _AGG_COPY
         if events_arr.ndim != 1:
             raise ValueError("events must be one-dimensional")
         if events_arr.size < length + 1:
@@ -493,20 +598,12 @@ class RhythmicSegments:
                 f"{length}; requires at least {length + 1} events."
             )
 
-        # Coerce the metadata into a pandas dataframe
-        if meta is not None:
-            meta = coerce_meta_frame(
-                meta,
-                expected_rows=len(events_arr),
-                missing_rows_message="meta must have the same number of rows as events",
-            )
-
         # Optionally drop NaN entries from both events and metadata
         if drop_nan:
             keep_mask = ~np.isnan(events_arr)
             events_arr = events_arr[keep_mask]
-            if meta is not None:
-                meta = meta.loc[keep_mask].reset_index(drop=True)
+            if event_meta is not None:
+                event_meta = event_meta.loc[keep_mask].reset_index(drop=True)
 
         # Computer intervals (event differences) and check they're positive
         # Note that this results in two np.na values for every np.na in the input.
@@ -518,12 +615,12 @@ class RhythmicSegments:
 
         # Aggregate event meta to interval meta
         interval_meta: Optional[pd.DataFrame] = None
-        if meta is not None:
+        if event_meta is not None:
             interval_meta = aggregate_meta(
-                meta_blocks=[meta],
-                value_blocks=[np.arange(len(meta), dtype=float)],
+                meta_blocks=[event_meta],
+                value_blocks=[np.arange(len(event_meta), dtype=float)],
                 window_len=2,
-                meta_agg=event_meta_agg,  # type: ignore
+                meta_agg=interval_meta_agg,  # type: ignore
                 expected_records=intervals.size,
             )
 

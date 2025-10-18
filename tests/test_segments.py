@@ -145,7 +145,7 @@ def test_rs_from_events_meta_handling():
         events,
         length=2,
         meta=meta,
-        event_meta_agg=event_agg,
+        interval_meta_agg=event_agg,
         segment_meta_agg=segment_agg,
     )
     assert rs.count == 2
@@ -157,7 +157,7 @@ def test_rs_from_events_meta_handling():
             events,
             length=2,
             meta={"label": ["start", "mid"]},
-            event_meta_agg=event_agg,
+            interval_meta_agg=event_agg,
             segment_meta_agg=segment_agg,
         )
 
@@ -179,10 +179,30 @@ def test_rs_from_events_meta_with_nan():
         events,
         length=2,
         meta=meta,
-        event_meta_agg=event_agg_concat,
+        interval_meta_agg=event_agg_concat,
         segment_meta_agg=segment_concat,
     )
     assert list(rs.meta["label"]) == ["ab-bc", "de-ef"]
+
+
+def test_meta_constants_applied_at_segment_level():
+    events = [0.0, 1.0, 2.0, 3.0]
+    rs_events = RhythmicSegments.from_events(
+        events,
+        length=2,
+        meta_constants={"dataset": "foo"},
+    )
+    assert "dataset" in rs_events.meta
+    assert rs_events.meta["dataset"].tolist() == ["foo", "foo"]
+
+    intervals = [0.5, 1.0, 1.5]
+    rs_intervals = RhythmicSegments.from_intervals(
+        intervals,
+        length=2,
+        meta_constants={"dataset": "bar"},
+    )
+    assert "dataset" in rs_intervals.meta
+    assert rs_intervals.meta["dataset"].tolist() == ["bar", "bar"]
 
 
 def test_rs_from_events_requires_increasing():

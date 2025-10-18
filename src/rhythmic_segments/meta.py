@@ -3,16 +3,21 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
+
+Aggregator = Callable[[pd.DataFrame], Mapping[str, Any]]
 
 
 def coerce_meta_frame(
     meta: Any,
     expected_rows: Optional[int] = None,
     missing_rows_message: str = "meta must match the expected row count",
+    *,
+    columns: Optional[Iterable[str]] = None,
+    constants: Optional[Mapping[str, Any]] = None,
 ) -> pd.DataFrame:
     """Return *meta* as a :class:`pandas.DataFrame`."""
 
@@ -31,6 +36,14 @@ def coerce_meta_frame(
     meta_df = meta_df.reset_index(drop=True)
     if expected_rows is not None and len(meta_df) != expected_rows:
         raise ValueError(missing_rows_message)
+    if columns is not None:
+        columns = list(columns)
+        missing = [col for col in columns if col not in meta_df.columns]
+        if missing:
+            raise KeyError(f"Columns {missing!r} not found in metadata")
+        meta_df = meta_df.loc[:, columns]
+    if constants:
+        meta_df = meta_df.assign(**dict(constants))
     return meta_df
 
 
@@ -38,7 +51,7 @@ def aggregate_meta(
     meta_blocks: Iterable[pd.DataFrame],
     value_blocks: Iterable[np.ndarray],
     window_len: int,
-    meta_agg: Callable[[pd.DataFrame], Mapping[str, Any]],
+    meta_agg: Aggregator,
     expected_records: int,
 ) -> pd.DataFrame:
     """Aggregate metadata windows aligned with numeric value blocks."""
@@ -63,15 +76,29 @@ def aggregate_meta(
     return pd.DataFrame(aggregated_meta)
 
 
-def resolve_columns(df: pd.DataFrame, columns: Optional[Iterable[str]]) -> List[str]:
-    resolved = list(df.columns) if columns is None else list(columns)
-    missing = [col for col in resolved if col not in df]
+def resolve_columns_and_names(
+    df: pd.DataFrame,
+    columns: Optional[Iterable[str]] = None,
+    names: Optional[Iterable[str]] = None,
+) -> Tuple[List[str], List[str]]:
+    resolved_columns = list(df.columns) if columns is None else list(columns)
+    missing = [col for col in resolved_columns if col not in df]
     if missing:
         raise KeyError(f"Columns {missing!r} not found in metadata")
-    return resolved
+    if names is None:
+        return resolved_columns, resolved_columns
+    resolved_names = list(names)
+    if len(resolved_names) != len(resolved_columns):
+        raise ValueError("'names' must match the number of selected columns")
+    return resolved_columns, resolved_names
 
 
-def agg_copy(df: pd.DataFrame, columns: Optional[Iterable[str]] = None) -> Dict[str, Any]:
+def agg_copy(
+    df: pd.DataFrame,
+    *,
+    columns: Optional[Iterable[str]] = None,
+    names: Optional[Iterable[str]] = None,
+) -> Dict[str, Any]:
     """Return every column value keyed by its position.
 
     >>> import pandas as pd
@@ -79,18 +106,20 @@ def agg_copy(df: pd.DataFrame, columns: Optional[Iterable[str]] = None) -> Dict[
     {'label_1': 'a', 'label_2': 'b'}
     """
 
-    columns = resolve_columns(df, columns)
+    columns_list, names_list = resolve_columns_and_names(df, columns, names)
     data: Dict[str, Any] = {}
     for idx, (_, row) in enumerate(df.iterrows(), start=1):
-        for col in columns:
-            data[f"{col}_{idx}"] = row[col]
+        for col, alias in zip(columns_list, names_list):
+            data[f"{alias}_{idx}"] = row[col]
     return data
 
 
 def agg_index(
     df: pd.DataFrame,
-    index: int = 0,
+    index: int,
+    *,
     columns: Optional[Iterable[str]] = None,
+    names: Optional[Iterable[str]] = None,
 ) -> Dict[str, Any]:
     """Return metadata from the row at ``index``.
 
@@ -103,12 +132,17 @@ def agg_index(
 
     if df.empty:
         raise ValueError("Cannot aggregate metadata from an empty DataFrame")
-    columns = resolve_columns(df, columns)
+    columns_list, names_list = resolve_columns_and_names(df, columns, names)
     row = df.iloc[index]
-    return row[columns].to_dict()
+    return {alias: row[col] for col, alias in zip(columns_list, names_list)}
 
 
-def agg_first(df: pd.DataFrame, columns: Optional[Iterable[str]] = None) -> Dict[str, Any]:
+def agg_first(
+    df: pd.DataFrame,
+    *,
+    columns: Optional[Iterable[str]] = None,
+    names: Optional[Iterable[str]] = None,
+) -> Dict[str, Any]:
     """Return metadata from the first interval.
 
     >>> import pandas as pd
@@ -116,10 +150,15 @@ def agg_first(df: pd.DataFrame, columns: Optional[Iterable[str]] = None) -> Dict
     {'label': 'a'}
     """
 
-    return agg_index(df, 0, columns=columns)
+    return agg_index(df, 0, columns=columns, names=names)
 
 
-def agg_last(df: pd.DataFrame, columns: Optional[Iterable[str]] = None) -> Dict[str, Any]:
+def agg_last(
+    df: pd.DataFrame,
+    *,
+    columns: Optional[Iterable[str]] = None,
+    names: Optional[Iterable[str]] = None,
+) -> Dict[str, Any]:
     """Return metadata from the last interval.
 
     >>> import pandas as pd
@@ -127,13 +166,15 @@ def agg_last(df: pd.DataFrame, columns: Optional[Iterable[str]] = None) -> Dict[
     {'label': 'b'}
     """
 
-    return agg_index(df, -1, columns=columns)
+    return agg_index(df, -1, columns=columns, names=names)
 
 
 def agg_join(
     df: pd.DataFrame,
-    columns: Optional[Iterable[str]] = None,
+    *,
     separator: str = "-",
+    columns: Optional[Iterable[str]] = None,
+    names: Optional[Iterable[str]] = None,
 ) -> Dict[str, Any]:
     """Join values from each column.
 
@@ -142,16 +183,18 @@ def agg_join(
     {'label': 'a|b', 'section': 'x|y'}
     """
 
-    columns = resolve_columns(df, columns)
+    columns_list, names_list = resolve_columns_and_names(df, columns, names)
     return {
-        column: separator.join(df[column].astype(str))
-        for column in columns
+        alias: separator.join(df[column].astype(str))
+        for column, alias in zip(columns_list, names_list)
     }
 
 
 def agg_list(
     df: pd.DataFrame,
+    *,
     columns: Optional[Iterable[str]] = None,
+    names: Optional[Iterable[str]] = None,
 ) -> Dict[str, Any]:
     """Return metadata as lists per column.
 
@@ -160,11 +203,11 @@ def agg_list(
     {'label': ['a', 'b']}
     """
 
-    columns = resolve_columns(df, columns)
-    return {column: list(df[column]) for column in columns}
+    columns_list, names_list = resolve_columns_and_names(df, columns, names)
+    return {alias: list(df[column]) for column, alias in zip(columns_list, names_list)}
 
 
-_DEFAULT_AGGREGATORS: Dict[str, Callable[..., Callable[[pd.DataFrame], Dict[str, Any]]]] = {
+_DEFAULT_AGGREGATORS: Dict[str, Callable[..., Aggregator]] = {
     "copy": lambda **kwargs: lambda df: agg_copy(df, **kwargs),
     "index": lambda **kwargs: lambda df: agg_index(df, **kwargs),
     "first": lambda **kwargs: lambda df: agg_first(df, **kwargs),
@@ -174,7 +217,7 @@ _DEFAULT_AGGREGATORS: Dict[str, Callable[..., Callable[[pd.DataFrame], Dict[str,
 }
 
 
-def get_aggregator(name: str, **kwargs: Any) -> Callable[[pd.DataFrame], Dict[str, Any]]:
+def get_aggregator(name: str, **kwargs: Any) -> Aggregator:
     """Return a named metadata aggregator.
 
     Supported names are ``"copy"``, ``"index"``, ``"first"``, ``"last"``,

@@ -1,6 +1,6 @@
 # Rhythmic Segments
 
-Welcome to the documentation for the `rhythmic_segments` project that helps 
+Welcome to the documentation for the `rhythmic_segments` project that helps
 you doing a Rhythmic Segment Analysis in Python. These pages
 collect some tutorials and the automatically generated API
 reference.
@@ -12,7 +12,6 @@ This project is under active development and the public API may change without
 notice. Expect rough edges while things stabilise—and please report anything
 you find surprising.
 ```
-
 
 ## Installation
 
@@ -36,7 +35,6 @@ rs.segments
 
 {doc}`Read more about the basic usage <Basic Usage>`
 
-
 ## License
 
 The code is distributed under an MIT license.
@@ -45,15 +43,15 @@ The code is distributed under an MIT license.
 
 Feel free to contribute via GitHub: https://github.com/bacor/rhythmic-segments
 
-
 ## Outline
-
 
 ```{toctree}
 :maxdepth: 2
 
 Getting started <self>
 Basic usage <Basic Usage>
+Operations <Operations>
+Metadata <Metadata>
 Plotting <Plotting>
 API Reference <api>
 ```

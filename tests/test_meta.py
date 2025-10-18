@@ -12,6 +12,7 @@ from rhythmic_segments.meta import (
     agg_join,
     agg_last,
     agg_list,
+    get_aggregator,
 )
 
 
@@ -28,6 +29,36 @@ def test_coerce_meta_frame_defaults_and_expected_rows():
     with pytest.raises(ValueError):
         coerce_meta_frame({"a": [1]}, expected_rows=2)
 
+
+def test_coerce_meta_frame_columns_and_constants():
+    df = coerce_meta_frame(
+        {"a": [1, 2], "b": [3, 4]},
+        expected_rows=2,
+        columns=["b"],
+        constants={"c": 10},
+    )
+    assert list(df.columns) == ["b", "c"]
+    assert df["b"].tolist() == [3, 4]
+    assert df["c"].tolist() == [10, 10]
+
+    with pytest.raises(KeyError):
+        coerce_meta_frame({"a": [1, 2]}, expected_rows=2, columns=["missing"])
+
+
+def test_aggregator_column_renaming():
+    df = pd.DataFrame({"label": ["a", "b"]})
+    join = get_aggregator("join", names=["interval_label"])
+    assert join(df) == {"interval_label": "a-b"}
+
+    first = get_aggregator("first", columns=["label"], names=["segment_label"])
+    assert first(df) == {"segment_label": "a"}
+
+    copy = get_aggregator("copy", columns=["label"], names=["base_label"])
+    assert copy(df) == {"base_label_1": "a", "base_label_2": "b"}
+
+    bad_join = get_aggregator("join", names=["col1", "col2", "extra"])
+    with pytest.raises(ValueError):
+        bad_join(df)
 
 def test_split_into_blocks_with_boundaries():
     boundaries = [False, False, True, False]
