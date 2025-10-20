@@ -207,6 +207,47 @@ def agg_list(
     return {alias: list(df[column]) for column, alias in zip(columns_list, names_list)}
 
 
+def agg_mode(
+    df: pd.DataFrame,
+    *,
+    columns: Optional[Iterable[str]] = None,
+    names: Optional[Iterable[str]] = None,
+) -> Dict[str, Any]:
+    """Return the most frequent value per column using first-occurrence tie breaks.
+
+    The most common value is reported for each selected column. When multiple
+    values share the same top frequency, the value that appears first in the
+    column is chosen so results stay deterministic.
+
+    >>> import pandas as pd
+    >>> agg_mode(pd.DataFrame({"label": ["a", "b", "a"], "section": ["x", "y", "y"]}))
+    {'label': 'a', 'section': 'y'}
+    >>> agg_mode(pd.DataFrame({"label": ["b", "a", "a", "b"]}))
+    {'label': 'b'}
+    """
+
+    if df.empty:
+        raise ValueError("Cannot aggregate metadata from an empty DataFrame")
+    columns_list, names_list = resolve_columns_and_names(df, columns, names)
+    _nan_marker = object()
+    result: Dict[str, Any] = {}
+    for column, alias in zip(columns_list, names_list):
+        series = df[column]
+        counts: Dict[Any, int] = {}
+        first_seen: Dict[Any, int] = {}
+        original_value: Dict[Any, Any] = {}
+        for idx, value in enumerate(series):
+            # Replace NaN with a unique placeholder so all NaNs map to one key, but keep the real value to return.
+            key = value if not pd.isna(value) else _nan_marker
+            if key not in counts:
+                counts[key] = 0
+                first_seen[key] = idx
+                original_value[key] = value
+            counts[key] += 1
+        chosen_key = max(counts, key=lambda key: (counts[key], -first_seen[key]))
+        result[alias] = original_value[chosen_key]
+    return result
+
 _DEFAULT_AGGREGATORS: Dict[str, Callable[..., Aggregator]] = {
     "copy": lambda **kwargs: lambda df: agg_copy(df, **kwargs),
     "index": lambda **kwargs: lambda df: agg_index(df, **kwargs),
@@ -214,6 +255,7 @@ _DEFAULT_AGGREGATORS: Dict[str, Callable[..., Aggregator]] = {
     "last": lambda **kwargs: lambda df: agg_last(df, **kwargs),
     "join": lambda **kwargs: lambda df: agg_join(df, **kwargs),
     "list": lambda **kwargs: lambda df: agg_list(df, **kwargs),
+    "mode": lambda **kwargs: lambda df: agg_mode(df, **kwargs),
 }
 
 
@@ -221,8 +263,8 @@ def get_aggregator(name: str, **kwargs: Any) -> Aggregator:
     """Return a named metadata aggregator.
 
     Supported names are ``"copy"``, ``"index"``, ``"first"``, ``"last"``,
-    ``"join"``, and ``"list"``. Additional keyword arguments are forwarded to
-    the underlying aggregator.
+    ``"join"``, ``"list"``, and ``"mode"``. Additional keyword arguments are
+    forwarded to the underlying aggregator.
 
     >>> import pandas as pd
     >>> agg = get_aggregator("first", columns=["label"])

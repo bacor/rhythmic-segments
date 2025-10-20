@@ -12,6 +12,7 @@ from rhythmic_segments.meta import (
     agg_join,
     agg_last,
     agg_list,
+    agg_mode,
     get_aggregator,
 )
 
@@ -133,6 +134,18 @@ def test_agg_list():
     df = pd.DataFrame({"label": ["a", "b"], "section": ["x", "y"]})
     result = agg_list(df, columns=["label"])
     assert result == {"label": ["a", "b"]}
+
+def test_agg_mode():
+    df = pd.DataFrame({"label": ["a", "b", "a"], "section": ["x", "y", "y"]})
+    result = agg_mode(df)
+    assert result == {"label": "a", "section": "y"}
+
+    tie_df = pd.DataFrame({"label": ["a", "b", "b", "a"]})
+    assert agg_mode(tie_df, columns=["label"]) == {"label": "a"}
+
+    nan_df = pd.DataFrame({"label": ["a", np.nan, np.nan]})
+    mode = agg_mode(nan_df, columns=["label"])
+    assert pd.isna(mode["label"])
 
 
 def test_get_aggregator():
