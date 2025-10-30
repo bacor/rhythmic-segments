@@ -10,7 +10,7 @@ import warnings
 
 from dataclasses import dataclass, replace
 from collections.abc import Mapping
-from typing import Any, Iterable, List, Optional, Union, Tuple
+from typing import Any, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
@@ -239,6 +239,7 @@ class RhythmicSegments:
         meta_columns: Optional[Iterable[str]] = None,
         meta_constants: Optional[Mapping[str, Any]] = None,
         dtype=np.dtype("float32"),
+        _allow_reserved: bool = False,
     ) -> "RhythmicSegments":
         """Create an instance from a precomputed segment matrix.
 
@@ -295,6 +296,13 @@ class RhythmicSegments:
             columns=meta_columns,
             constants=meta_constants,
         )
+        if not _allow_reserved:
+            reserved_segment_cols = {"step", "start_time"}
+            conflicts = reserved_segment_cols.intersection(meta_df.columns)
+            if conflicts:
+                raise ValueError(
+                    f"Metadata columns {sorted(conflicts)!r} are reserved for internal use."
+                )
 
         return RhythmicSegments(
             np.ascontiguousarray(segments, dtype=dtype),
@@ -398,6 +406,9 @@ class RhythmicSegments:
         >>> list(rs.meta['labels'])
         ['a-b', 'c-d']
 
+        The returned object's metadata always contains a ``step`` column that
+        records the within-block index of each segment.
+
         If the number of intervals is smaller than the segment length, a warning is thrown,
         this can be turned off using the warn_on_short flag:
 
@@ -407,7 +418,7 @@ class RhythmicSegments:
         ValueError: Not enough intervals to form a segment of length 3; requires at least 3 intervals.
 
         >>> RhythmicSegments.from_intervals([1, 2], length=2)
-        RhythmicSegments(segment_length=2, n_segments=1, n_meta_cols=0, segments=[[1., 2.]])
+        RhythmicSegments(segment_length=2, n_segments=1, meta_columns=[step], segments=[[1., 2.]])
         """
         # Coerce input to numpy array and ensure sufficient length
         intervals_arr, interval_meta = process_input_data(
@@ -424,6 +435,14 @@ class RhythmicSegments:
             raise ValueError(
                 f"Not enough intervals to form a segment of length {length}; requires at least {length} intervals."
             )
+        if interval_meta is not None and "step" in interval_meta.columns:
+            raise ValueError("Metadata column 'step' is reserved for internal use.")
+        allow_reserved_override = from_segments_kwargs.pop("_allow_reserved", None)
+        if allow_reserved_override is not None:
+            warnings.warn(
+                "'_allow_reserved' is reserved for internal use; overriding it may lead to inconsistent metadata.",
+                UserWarning,
+            )
 
         # Split intervals into blocks
         has_nan = np.isnan(intervals_arr).any()
@@ -431,7 +450,7 @@ class RhythmicSegments:
             raise ValueError(
                 "Intervals contain NaN values; enable split_at_nan or preprocess via split_into_blocks()."
             )
-        elif has_nan:
+        if has_nan and split_at_nan:
             boundaries = np.isnan(intervals_arr)
             blocks = split_into_blocks(
                 intervals_arr,
@@ -449,8 +468,25 @@ class RhythmicSegments:
             check_zero_intervals=check_zero_intervals,
             check_nan_intervals=False,
         )
-        block_segments = [extract_segments(block, length, **kws) for block in blocks]  # type: ignore
-        segments = np.concatenate(block_segments, axis=0)
+        block_segments: List[np.ndarray] = []
+        step_values: List[np.ndarray] = []
+        for block in blocks:
+            seg_block = extract_segments(block, length, **kws)  # type: ignore
+            block_segments.append(seg_block)
+            if seg_block.size == 0:
+                continue
+            step_values.append(np.arange(seg_block.shape[0], dtype=int))
+
+        segments = (
+            np.concatenate(block_segments, axis=0)
+            if block_segments
+            else np.empty((0, length), dtype=float)
+        )
+        steps = (
+            np.concatenate(step_values, axis=0)
+            if step_values
+            else np.empty(segments.shape[0], dtype=int)
+        )
 
         # Aggregate interval metadata to segment metadata
         segment_meta: Optional[pd.DataFrame] = None
@@ -481,10 +517,22 @@ class RhythmicSegments:
             else:
                 segment_meta = segment_meta.assign(**const_dict)
 
+        if segment_meta is None:
+            segment_meta = pd.DataFrame({"step": steps})
+        else:
+            if "step" in segment_meta.columns:
+                raise ValueError("Metadata column 'step' is reserved for internal use.")
+            segment_meta = segment_meta.assign(step=steps)
+
+        allow_reserved_flag = (
+            True if allow_reserved_override is None else bool(allow_reserved_override)
+        )
+
         return RhythmicSegments.from_segments(
             segments,
             length=length,
             meta=segment_meta,
+            _allow_reserved=allow_reserved_flag,
             **from_segments_kwargs,
         )
 
@@ -494,6 +542,7 @@ class RhythmicSegments:
         length: int,
         *,
         drop_nan: bool = False,
+        split_at_nan: bool = True,
         column: Optional[str] = None,
         meta: Optional[Any] = None,
         meta_columns: Optional[Iterable[str]] = None,
@@ -516,6 +565,10 @@ class RhythmicSegments:
             (default), the resulting interval stream will contain ``NaN``
             markers wherever the original event data did, which in turn act as
             block boundaries for :meth:`from_intervals`.
+        split_at_nan : bool, optional
+            Forwarded to :meth:`from_intervals`. When ``True`` (default),
+            segments never span ``NaN`` intervals; ``False`` disables the
+            boundary handling.
         column : Optional[str], optional
             When provided, ``events`` must be DataFrame-like and the specified
             column supplies the timestamp values. All remaining columns are
@@ -541,7 +594,7 @@ class RhythmicSegments:
             :func:`get_aggregator("copy")`.
         **from_intervals_kwargs : Any
             Additional keyword arguments forwarded to :meth:`from_intervals`,
-            such as ``split_at_nan`` or ``dtype``.
+            such as ``dtype``.
 
         Examples
         --------
@@ -560,6 +613,9 @@ class RhythmicSegments:
             [0.5, 0.5],
             [0.5, 0.5]], dtype=float32)
 
+        The resulting metadata includes a ``start_time`` column storing the
+        absolute onset of each segment.
+
         Note that passing ``split_at_nan=False`` while retaining the ``NaN`` intervals
         will raise an error because :meth:`from_intervals` forbids segments crossing
         the boundary:
@@ -575,6 +631,8 @@ class RhythmicSegments:
             raise TypeError(
                 "'meta_agg' is not an allowed keyword. From_events 'segment_meta_agg' for segment-level aggregation."
             )
+        if "split_at_nan" in from_intervals_kwargs:
+            raise TypeError("'split_at_nan' must be passed directly to from_events.")
 
         # Validate all input
         events_arr, event_meta = process_input_data(
@@ -605,6 +663,11 @@ class RhythmicSegments:
             events_arr = events_arr[keep_mask]
             if event_meta is not None:
                 event_meta = event_meta.loc[keep_mask].reset_index(drop=True)
+        if events_arr.size < length + 1:
+            raise ValueError(
+                "Not enough events to form a segment of length "
+                f"{length}; requires at least {length + 1} events after dropping NaNs."
+            )
 
         # Computer intervals (event differences) and check they're positive
         # Note that this results in two np.na values for every np.na in the input.
@@ -613,6 +676,20 @@ class RhythmicSegments:
         finite_intervals = intervals[np.isfinite(intervals)]
         if np.any(finite_intervals < 0):
             raise ValueError("events must be in non-decreasing order")
+
+        # Determine per-segment absolute start times from the event stream.
+        n_intervals = intervals.size
+        if n_intervals < length:
+            start_indices = np.empty(0, dtype=int)
+        else:
+            raw_count = n_intervals - length + 1
+            if split_at_nan:
+                finite_mask = np.isfinite(intervals)
+                window_mask = sliding_window_view(finite_mask, length).all(axis=1)
+                start_indices = np.nonzero(window_mask)[0]
+            else:
+                start_indices = np.arange(raw_count, dtype=int)
+        start_times = events_arr[start_indices].astype(float, copy=False)
 
         # Aggregate event meta to interval meta
         interval_meta: Optional[pd.DataFrame] = None
@@ -625,13 +702,26 @@ class RhythmicSegments:
                 expected_records=intervals.size,
             )
 
-        return RhythmicSegments.from_intervals(
+        rs = RhythmicSegments.from_intervals(
             intervals,
             length=length,
+            split_at_nan=split_at_nan,
             meta=interval_meta,
             meta_agg=segment_meta_agg,
             **from_intervals_kwargs,
         )
+
+        if start_times.shape[0] != rs.count:
+            raise RuntimeError(
+                "Mismatch between computed start times and produced segments; this indicates a bug."
+            )
+
+        if "start_time" in rs.meta.columns:
+            raise ValueError(
+                "Metadata column 'start_time' is reserved for internal use."
+            )
+        updated_meta = rs.meta.assign(start_time=start_times)
+        return replace(rs, meta=updated_meta)
 
     @staticmethod
     def concat(
@@ -699,7 +789,6 @@ class RhythmicSegments:
             combined_meta[source_col] = (
                 np.concatenate(indices) if indices else np.array([], dtype=int)
             )
-
         return RhythmicSegments(
             combined_segments,
             combined_patterns,
@@ -713,6 +802,24 @@ class RhythmicSegments:
         """Number of stored segments."""
 
         return int(self.segments.shape[0])
+
+    @property
+    def step(self) -> pd.Series:
+        """Within-block step index for each segment."""
+
+        if "step" not in self.meta:
+            raise AttributeError("Step metadata is unavailable for this instance.")
+        return self.meta["step"]
+
+    @property
+    def start_time(self) -> pd.Series:
+        """Absolute start time for each segment."""
+
+        if "start_time" not in self.meta:
+            raise AttributeError(
+                "Start-time metadata is unavailable for this instance."
+            )
+        return self.meta["start_time"]
 
     def take(self, idx: Union[np.ndarray, List[int]]) -> "RhythmicSegments":
         """Return a new instance containing only the segments at *idx*.

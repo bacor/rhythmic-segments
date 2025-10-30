@@ -106,6 +106,24 @@ def test_rs_from_intervals_nan():
         )
 
 
+def test_rs_from_intervals_step_metadata_blocks():
+    intervals = [1.0, 2.0, 3.0, np.nan, 4.0, 5.0, 6.0]
+    rs = RhythmicSegments.from_intervals(intervals, length=2)
+    assert "step" in rs.meta
+    assert rs.step.tolist() == [0, 1, 0, 1]
+    np.testing.assert_array_equal(rs.meta["step"].to_numpy(), rs.step.to_numpy())
+
+
+def test_rs_from_intervals_rejects_step_override():
+    intervals = [0.5, 1.0, 1.5]
+    with pytest.raises(ValueError):
+        RhythmicSegments.from_intervals(
+            intervals,
+            length=2,
+            meta={"step": [0, 1, 2]},
+        )
+
+
 def test_rs_from_intervals_length_two():
     intervals = [0.1, 0.2, np.nan, 0.3, 0.4, 0.5]
     meta = dict(label=["x", "y", "nan", "z", "w", "v"])
@@ -248,6 +266,37 @@ def test_rs_from_events_preserves_nan_boundaries():
     rs_intervals = RhythmicSegments.from_intervals(intervals, length=2)
     assert rs_events.count == rs_intervals.count
     np.testing.assert_array_equal(rs_events.segments, rs_intervals.segments)
+
+
+def test_rs_from_events_injects_start_time():
+    events = [0.0, 0.5, 1.0, np.nan, 2.0, 2.5, 3.0]
+    rs = RhythmicSegments.from_events(events, length=2)
+    assert "start_time" in rs.meta
+    np.testing.assert_allclose(rs.start_time.to_numpy(), np.array([0.0, 2.0]))
+    np.testing.assert_array_equal(rs.meta["start_time"].to_numpy(), rs.start_time.to_numpy())
+
+
+def test_rs_from_events_rejects_start_time_override():
+    events = [0.0, 0.5, 1.0, 1.5]
+
+    def segment_meta_agg(df: pd.DataFrame) -> dict:
+        return {"start_time": float(df.index[0])}
+
+    with pytest.raises(ValueError):
+        RhythmicSegments.from_events(
+            events,
+            length=2,
+            meta={"label": ["a", "b", "c", "d"]},
+            segment_meta_agg=segment_meta_agg,
+        )
+
+
+def test_rs_from_segments_rejects_reserved_meta_columns():
+    data = [[1.0, 2.0], [2.0, 3.0]]
+    with pytest.raises(ValueError):
+        RhythmicSegments.from_segments(data, meta={"step": [0, 1]})
+    with pytest.raises(ValueError):
+        RhythmicSegments.from_segments(data, meta={"start_time": [0.0, 1.0]})
 
 
 def test_rs_from_events_requires_enough_events():
