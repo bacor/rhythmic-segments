@@ -1,0 +1,690 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "3929ae6b",
+   "metadata": {},
+   "source": [
+    "# Handling metadata"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "99693c59",
+   "metadata": {},
+   "source": [
+    "`RhythmicSegments` really shines when you need to handle metadata. Internally, it holds a pandas DataFrame of segments metadata in which every row corresponds to a segment. Metadata will always be kept aligned to the segments, also when taking subsets, filtering, querying and so on. This notebook demonstrates how to handle metadata with RhythmicSegments."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "37b33d17",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "import pandas as pd\n",
+    "\n",
+    "from rhythmic_segments import RhythmicSegments"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "65051092",
+   "metadata": {},
+   "source": [
+    " You can pass metadata using the `meta` keyword; it will accept anything that can be turned into a DataFrame."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "26225b9a",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>label</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>a</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>b</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>c</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "  label\n",
+       "0     a\n",
+       "1     b\n",
+       "2     c"
+      ]
+     },
+     "execution_count": 2,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "segments = [[2, 8], [.3, .6], [1, 1]]\n",
+    "meta = dict(label=[\"a\", \"b\", \"c\"])\n",
+    "rs = RhythmicSegments.from_segments(segments, meta=meta)\n",
+    "rs.meta"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "5db5ee3c",
+   "metadata": {},
+   "source": [
+    "You can choose which columns in the metadata you want to copy using `meta_columns`, or pass metadata that's constant for all segments using `meta_constants`:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "d66322c4",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>label</th>\n",
+       "      <th>intensity</th>\n",
+       "      <th>instrument</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>a</td>\n",
+       "      <td>0.1</td>\n",
+       "      <td>guitar</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>b</td>\n",
+       "      <td>0.2</td>\n",
+       "      <td>guitar</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>c</td>\n",
+       "      <td>0.3</td>\n",
+       "      <td>guitar</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "  label  intensity instrument\n",
+       "0     a        0.1     guitar\n",
+       "1     b        0.2     guitar\n",
+       "2     c        0.3     guitar"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "meta = dict(label=[\"a\", \"b\", \"c\"], intensity=[.1, .2, .3], foo=['A', 'B', 'C'])\n",
+    "rs = RhythmicSegments.from_segments(\n",
+    "    segments, \n",
+    "    meta=meta, \n",
+    "    meta_columns=['label', 'intensity'],\n",
+    "    meta_constants=dict(instrument=\"guitar\")\n",
+    ")\n",
+    "rs.meta"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ca930d00",
+   "metadata": {},
+   "source": [
+    "## Aggregating metadata"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "9beac542",
+   "metadata": {},
+   "source": [
+    "When using `from_segments`, handling metadata is simple: you already have one metadata entry per segment. However, when using `from_intervals` or `from_events` things get more complicated. Suppose individual intervals carry annotations (for example, performer labels) and you want to derive segment-level metadata from them. You then have to **aggregate** interval-level metadata to segment-level metadata, for example by concatenating the labels of all intervals to get a label for the segment. \nYou can supply an *aggregator* that receives the per-interval metadata for each segment and returns a dictionary describing the segment metadata. Every key in that dictionary becomes a column in the final meta DataFrame. \n\nSuppose we need to aggregate the following interval-level metadata to get the metadata of the corresponding segment:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "73e3212d",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>label</th>\n",
+       "      <th>color</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>a</td>\n",
+       "      <td>r</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>b</td>\n",
+       "      <td>g</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>c</td>\n",
+       "      <td>b</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "  label color\n",
+       "0     a     r\n",
+       "1     b     g\n",
+       "2     c     b"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "interval_meta = pd.DataFrame(dict(label=[\"a\", \"b\", \"c\"], color=[\"r\", \"g\", \"b\"]))\n",
+    "interval_meta"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8f08b2da",
+   "metadata": {},
+   "source": [
+    "We define a custom aggregator that will create three metadata columns:\n",
+    "\n",
+    "- `segment_label`: a concatenation of the labels of the intervals in the segment\n",
+    "- `first_label`: the label of the first interval in the segment\n",
+    "- `last_color`: the color of the last interval"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "26e8f5ce",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "{'segment_label': 'a-b-c', 'first_label': 'a', 'last_color': 'b'}"
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def my_aggregator(interval_meta):\n",
+    "    return {\n",
+    "        \"segment_label\": \"-\".join(interval_meta['label']), \n",
+    "        \"first_label\": interval_meta.iloc[0]['label'],\n",
+    "        \"last_color\": interval_meta.iloc[-1]['color']\n",
+    "    }\n",
+    "\n",
+    "my_aggregator(interval_meta)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8b5a2bb5",
+   "metadata": {},
+   "source": [
+    "If you now pass both the metadata and the aggregator to `from_intervals`, you get segment-level metadata. Note that it respects block boundaries: segments do not cross the `np.nan` values."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "b008cba9",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>segment_label</th>\n",
+       "      <th>first_label</th>\n",
+       "      <th>last_color</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>a-b-c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>C</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>b-c-d</td>\n",
+       "      <td>b</td>\n",
+       "      <td>D</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>e-f-g</td>\n",
+       "      <td>e</td>\n",
+       "      <td>G</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "  segment_label first_label last_color\n",
+       "0         a-b-c           a          C\n",
+       "1         b-c-d           b          D\n",
+       "2         e-f-g           e          G"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "intervals = [1, 2, 3, 4, np.nan, 5, 6, 7]\n",
+    "meta = dict(\n",
+    "  label=['a', 'b', 'c', 'd', np.nan, 'e', 'f', 'g'], \n",
+    "  color=['A', 'B', 'C', 'D', np.nan, 'E', 'F', 'G']\n",
+    ")\n",
+    "rs = RhythmicSegments.from_intervals(intervals, length=3, meta=meta, meta_agg=my_aggregator)\n",
+    "rs.meta"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e3dba8d0",
+   "metadata": {},
+   "source": [
+    "## Default aggregators"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "f6e931eb",
+   "metadata": {},
+   "source": [
+    "You can define your own aggregators as above, but you can also use some predefined aggregators using `get_aggregator`. The `\"copy\"` aggregator is the default aggregator and will copy all metadata of all intervals. A suffix is added to indicate the corresponding interval (e.g., color_3 will be the color of the third interval in a segment)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "93450dd4",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "{'label_1': 'a',\n",
+       " 'color_1': 'r',\n",
+       " 'label_2': 'b',\n",
+       " 'color_2': 'g',\n",
+       " 'label_3': 'c',\n",
+       " 'color_3': 'b'}"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "from rhythmic_segments import get_aggregator\n",
+    "\n",
+    "agg_copy = get_aggregator(\"copy\")\n",
+    "agg_copy(interval_meta)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "948b035c",
+   "metadata": {},
+   "source": [
+    "The `\"first\"` aggregator simply returns the metadata of the first interval in the segment, the `\"last\"` aggregator similarly returns the metadata of the last interval, `\"index\"` returns a particular index (0=first, -1=last), and `\"list\"` will combine all the metadata of all intervals in a list. All of them accept a `columns` argument. If set, it will only use those columns. The `names` argument allows you to rename the resulting columns"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "78f7a5ca",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "{'first_color': 'r'}"
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "agg_first = get_aggregator(\"first\", columns=[\"color\"], names=['first_color'])\n",
+    "agg_first(interval_meta) "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "01bc762a",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "{'middle_label': 'b'}"
+      ]
+     },
+     "execution_count": 9,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "agg_middle = get_aggregator(\"index\", index=1, columns=[\"label\"], names=['middle_label'])\n",
+    "agg_middle(interval_meta) "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8bddfb12",
+   "metadata": {},
+   "source": [
+    "### Interval aggregators for `from_events`"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ef770e20",
+   "metadata": {},
+   "source": [
+    "Handling metadata using `from_events` requires *two* aggregators: `interval_meta_agg` to turn event-level metadata into interval-level metadata, and `segment_meta_agg` to turn that into segment-level metadata. By default, `interval_meta_agg` will use metadata of the **first** event as the metadata for the interval. "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "ea989799",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>event_label_1</th>\n",
+       "      <th>event_label_2</th>\n",
+       "      <th>event_label_3</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>a</td>\n",
+       "      <td>b</td>\n",
+       "      <td>c</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>b</td>\n",
+       "      <td>c</td>\n",
+       "      <td>d</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>c</td>\n",
+       "      <td>d</td>\n",
+       "      <td>e</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "  event_label_1 event_label_2 event_label_3\n",
+       "0             a             b             c\n",
+       "1             b             c             d\n",
+       "2             c             d             e"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "events = [1, 2, 4, 8, 16, 32]\n",
+    "meta = dict(event_label=[\"a\", \"b\", \"c\", \"d\", \"e\", \"f\"])\n",
+    "rs = RhythmicSegments.from_events(events, length=3, meta=meta)\n",
+    "rs.meta"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "fcf31232",
+   "metadata": {},
+   "source": [
+    "If you wish to combine metadata of both events to create the interval metadata, specify an aggregator. For example, here we create a label by concatenating interval labels with a dash in between. Interval labels themselves are just concatenation of event labels:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "a4372e7a",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>segment_label</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>ab-bc-cd</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>bc-cd-de</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>cd-de-ef</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "  segment_label\n",
+       "0      ab-bc-cd\n",
+       "1      bc-cd-de\n",
+       "2      cd-de-ef"
+      ]
+     },
+     "execution_count": 11,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "interval_meta_agg = get_aggregator('join', separator=\"\")\n",
+    "segment_meta_agg = get_aggregator('join', separator=\"-\", names=[\"segment_label\"])\n",
+    "rs = RhythmicSegments.from_events(\n",
+    "  events, \n",
+    "  length=3, \n",
+    "  meta=meta, \n",
+    "  interval_meta_agg=interval_meta_agg,\n",
+    "  segment_meta_agg=segment_meta_agg)\n",
+    "\n",
+    "rs.meta"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": ".venv",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.11.13"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

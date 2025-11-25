@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en" data-accent-color="violet" data-content_root="../../../">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>rhythmic_segments.segments - Rhythmic Segments documentation</title><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" /><link rel="next" title="rhythmic_segments.patterns" href="../patterns/index.html" /><link rel="prev" title="API Reference" href="../../../api.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"auto");
+  </script><link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b1a1f93b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/shibuya.css?v=bb284d7b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link media="print" rel="stylesheet" type="text/css" href="../../../_static/print.css?v=20ff2c19" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=34b0ee1f" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    <meta property="og:type" content="website"/><meta property="og:title" content="rhythmic_segments.segments"/>
+<meta name="twitter:card" content="summary"/>
+  </head>
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="../../../index.html">
+      
+      
+      <strong>Rhythmic Segments</strong>
+    </a>
+    <div class="sy-head-nav" id="head-nav">
+      <nav class="sy-head-links"></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials"></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="head-nav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2"></span>
+          <span class="hamburger_3"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="0"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Basic%20Usage.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Operations.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Metadata.html">Metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Plotting.html">Plotting</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../api.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">segments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../patterns/index.html">patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../helpers/index.html">helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../meta/index.html">meta</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#module-contents">Module Contents</a><ul>
+<li><a class="reference internal" href="#rhythmic_segments.segments.extract_segments"><code class="docutils literal notranslate"><span class="pre">extract_segments()</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.normalize_segments"><code class="docutils literal notranslate"><span class="pre">normalize_segments()</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.process_input_data"><code class="docutils literal notranslate"><span class="pre">process_input_data()</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments"><code class="docutils literal notranslate"><span class="pre">RhythmicSegments</span></code></a><ul>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.segments"><code class="docutils literal notranslate">segments</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.patterns"><code class="docutils literal notranslate">patterns</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.durations"><code class="docutils literal notranslate">durations</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.length"><code class="docutils literal notranslate">length</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.meta"><code class="docutils literal notranslate">meta</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.from_segments"><code class="docutils literal notranslate">from_segments()</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.from_intervals"><code class="docutils literal notranslate">from_intervals()</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.from_events"><code class="docutils literal notranslate">from_events()</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.concat"><code class="docutils literal notranslate">concat()</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.count"><code class="docutils literal notranslate">count</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.step"><code class="docutils literal notranslate">step</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.start_time"><code class="docutils literal notranslate">start_time</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.pat"><code class="docutils literal notranslate">pat</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.dur"><code class="docutils literal notranslate">dur</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.ratio"><code class="docutils literal notranslate">ratio</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.patdur"><code class="docutils literal notranslate">patdur</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.take"><code class="docutils literal notranslate">take()</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.filter"><code class="docutils literal notranslate">filter()</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.filter_by_duration"><code class="docutils literal notranslate">filter_by_duration()</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.with_meta"><code class="docutils literal notranslate">with_meta()</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.query"><code class="docutils literal notranslate">query()</span></code></a></li>
+<li><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.shuffle"><code class="docutils literal notranslate">shuffle()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6">
+<div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="../../../index.html"><span itemprop="name">Rhythmic Segments</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="../../../api.html"><span itemprop="name">API Reference</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="2" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">rhythmic_segments.segments</strong>
+        <meta itemprop="position" content="3" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+        <article class="yue" role="main">
+          <section id="module-rhythmic_segments.segments">
+<span id="rhythmic-segments-segments"></span><h1>rhythmic_segments.segments<a class="headerlink" href="#module-rhythmic_segments.segments" title="Link to this heading">¶</a></h1>
+<p>Utility functions for working with rhythmic segments.</p>
+<p>This module provides helpers for constructing and manipulating n-gram segments
+that represent consecutive rhythmic events.</p>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments" title="rhythmic_segments.segments.RhythmicSegments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RhythmicSegments</span></code></a></p></td>
+<td><p>Immutable container for rhythmic segment matrices.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rhythmic_segments.segments.extract_segments" title="rhythmic_segments.segments.extract_segments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extract_segments</span></code></a>(→ numpy.ndarray)</p></td>
+<td><p>Return a vectorized sliding-window matrix of interval segments.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#rhythmic_segments.segments.normalize_segments" title="rhythmic_segments.segments.normalize_segments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_segments</span></code></a>(→ Tuple[numpy.ndarray, numpy.ndarray])</p></td>
+<td><p>Normalize each segment to sum to one and return scaling factors.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rhythmic_segments.segments.process_input_data" title="rhythmic_segments.segments.process_input_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_input_data</span></code></a>(→ Tuple[numpy.ndarray, ...)</p></td>
+<td><p>Return numeric data and processed metadata extracted from <em>data</em>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.extract_segments">
+<span class="sig-prename descclassname"><span class="pre">rhythmic_segments.segments.</span></span><span class="sig-name descname"><span class="pre">extract_segments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">intervals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">warn_on_short</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_zero_intervals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_nan_intervals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#rhythmic_segments.segments.extract_segments" title="Link to this definition">¶</a></dt>
+<dd><p>Return a vectorized sliding-window matrix of interval segments.</p>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>intervals<span class="classifier">Iterable[float]</span></dt><dd><p>Contiguous numeric intervals. Inputs containing <code class="docutils literal notranslate"><span class="pre">np.nan</span></code> must be
+pre-split via <a class="reference internal" href="../helpers/index.html#rhythmic_segments.helpers.split_into_blocks" title="rhythmic_segments.helpers.split_into_blocks"><code class="xref py py-func docutils literal notranslate"><span class="pre">rhythmic_segments.helpers.split_into_blocks()</span></code></a>.</p>
+</dd>
+<dt>length<span class="classifier">int</span></dt><dd><p>Window size of each produced segment.</p>
+</dd>
+<dt>warn_on_short<span class="classifier">bool, optional</span></dt><dd><p>Emit a <code class="xref py py-class docutils literal notranslate"><span class="pre">UserWarning</span></code> when the data is shorter than <code class="docutils literal notranslate"><span class="pre">length</span></code> and
+no segments can be formed.</p>
+</dd>
+<dt>copy<span class="classifier">bool, optional</span></dt><dd><p>Return a copy of the data (default) instead of a view.</p>
+</dd>
+<dt>check_zero_intervals, check_nan_intervals<span class="classifier">bool, optional</span></dt><dd><p>Enable validation that forbids zero or NaN intervals, respectively.</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h3>Returns<a class="headerlink" href="#returns" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>np.ndarray</dt><dd><p>Matrix of shape <code class="docutils literal notranslate"><span class="pre">(n_segments,</span> <span class="pre">length)</span></code> containing the extracted
+segments.</p>
+</dd>
+</dl>
+</section>
+<section id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">extract_segments</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
+</span><span data-line="3"><span class="go">array([[1., 2., 3.],</span>
+</span><span data-line="4"><span class="go">       [2., 3., 4.],</span>
+</span><span data-line="5"><span class="go">       [3., 4., 5.]])</span>
+</span><span data-line="6"><span class="gp">&gt;&gt;&gt; </span><span class="n">extract_segments</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="mi">2</span><span class="p">,</span> <span class="n">check_zero_intervals</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span data-line="7"><span class="go">array([[1., 0.],</span>
+</span><span data-line="8"><span class="go">       [0., 2.]])</span>
+</span></pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.normalize_segments">
+<span class="sig-prename descclassname"><span class="pre">rhythmic_segments.segments.</span></span><span class="sig-name descname"><span class="pre">normalize_segments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">segments</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#rhythmic_segments.segments.normalize_segments" title="Link to this definition">¶</a></dt>
+<dd><p>Normalize each segment to sum to one and return scaling factors.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">normalize_segments</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+</span><span data-line="2"><span class="go">(array([[0.5       , 0.5       ],</span>
+</span><span data-line="3"><span class="go">       [0.66666667, 0.33333333]]), array([2., 3.]))</span>
+</span></pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.process_input_data">
+<span class="sig-prename descclassname"><span class="pre">rhythmic_segments.segments.</span></span><span class="sig-name descname"><span class="pre">process_input_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">column</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_constants</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">collections.abc.Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">pandas.DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#rhythmic_segments.segments.process_input_data" title="Link to this definition">¶</a></dt>
+<dd><p>Return numeric data and processed metadata extracted from <em>data</em>.</p>
+<p>When <em>column</em> is provided and <em>meta</em> is supplied, the explicit metadata
+takes precedence over the inferred DataFrame columns. Metadata selection
+via <em>meta_columns</em> and constant assignments from <em>meta_constants</em> are
+applied before returning the DataFrame.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">rhythmic_segments.segments.</span></span><span class="sig-name descname"><span class="pre">RhythmicSegments</span></span><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments" title="Link to this definition">¶</a></dt>
+<dd><p>Immutable container for rhythmic segment matrices.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_intervals</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">1.25</span><span class="p">],</span> <span class="n">length</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">segments</span><span class="o">.</span><span class="n">shape</span>
+</span><span data-line="3"><span class="go">(3, 2)</span>
+</span><span data-line="4"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">durations</span>
+</span><span data-line="5"><span class="go">array([1.5 , 1.75, 2.  ], dtype=float32)</span>
+</span></pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.segments">
+<span class="sig-name descname"><span class="pre">segments</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.segments" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.patterns">
+<span class="sig-name descname"><span class="pre">patterns</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.patterns" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.durations">
+<span class="sig-name descname"><span class="pre">durations</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.durations" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.length">
+<span class="sig-name descname"><span class="pre">length</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.length" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.meta">
+<span class="sig-name descname"><span class="pre">meta</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pandas.DataFrame</span></em><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.meta" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.from_segments">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_segments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">segments</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_constants</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">collections.abc.Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">np.dtype('float32')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_allow_reserved</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments" title="rhythmic_segments.segments.RhythmicSegments"><span class="pre">RhythmicSegments</span></a></span></span><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.from_segments" title="Link to this definition">¶</a></dt>
+<dd><p>Create an instance from a precomputed segment matrix.</p>
+<section id="id1">
+<h3>Parameters<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>segments<span class="classifier">Iterable[Iterable[float]]</span></dt><dd><p>Matrix of segment data.</p>
+</dd>
+<dt>length<span class="classifier">Optional[int]</span></dt><dd><p>Expected segment length. Required when <code class="docutils literal notranslate"><span class="pre">segments</span></code> is empty and must
+be at least <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p>
+</dd>
+<dt>meta<span class="classifier">Optional[Any]</span></dt><dd><p>Per-segment metadata; anything convertible to <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>
+with one row per segment.</p>
+</dd>
+<dt>meta_columns<span class="classifier">Optional[Iterable[str]], optional</span></dt><dd><p>Names of metadata columns to retain. When <code class="docutils literal notranslate"><span class="pre">None</span></code> all columns are
+kept.</p>
+</dd>
+<dt>meta_constants<span class="classifier">Optional[Mapping[str, Any]], optional</span></dt><dd><p>Constant metadata columns to add.</p>
+</dd>
+<dt>dtype<span class="classifier">data-type, optional</span></dt><dd><p>Target dtype for the internal arrays. Defaults to <code class="docutils literal notranslate"><span class="pre">np.float32</span></code>.</p>
+</dd>
+</dl>
+</section>
+<section id="id2">
+<h3>Examples<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_segments</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]],</span> <span class="n">meta</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">]})</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">segments</span>
+</span><span data-line="3"><span class="go">array([[1., 2.],</span>
+</span><span data-line="4"><span class="go">       [3., 4.]], dtype=float32)</span>
+</span><span data-line="5"><span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">rs</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">])</span>
+</span><span data-line="6"><span class="go">[&#39;a&#39;, &#39;b&#39;]</span>
+</span></pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.from_intervals">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_intervals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">intervals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_at_nan</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warn_on_short</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_zero_intervals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_constants</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">collections.abc.Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_agg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">rhythmic_segments.meta.Aggregator</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">_AGG_COPY</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">from_segments_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments" title="rhythmic_segments.segments.RhythmicSegments"><span class="pre">RhythmicSegments</span></a></span></span><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.from_intervals" title="Link to this definition">¶</a></dt>
+<dd><p>Create an instance from sequential interval data.</p>
+<section id="id3">
+<h3>Parameters<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>intervals<span class="classifier">Iterable[Any]</span></dt><dd><p>Contiguous numeric intervals to window. Inputs containing <code class="docutils literal notranslate"><span class="pre">np.nan</span></code>
+delimiters can be handled by enabling <code class="docutils literal notranslate"><span class="pre">split_at_nan</span></code>.</p>
+</dd>
+<dt>length<span class="classifier">int</span></dt><dd><p>Segment length. Must be at least <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p>
+</dd>
+<dt>split_at_nan<span class="classifier">bool, optional</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code> (default) split the interval stream on <code class="docutils literal notranslate"><span class="pre">np.nan</span></code>
+boundaries before extraction.</p>
+</dd>
+<dt>warn_on_short, copy, check_zero_intervals<span class="classifier">bool, optional</span></dt><dd><p>Forwarded to <a class="reference internal" href="#rhythmic_segments.segments.extract_segments" title="rhythmic_segments.segments.extract_segments"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_segments()</span></code></a> (see that function for details).</p>
+</dd>
+<dt>column<span class="classifier">Optional[str], optional</span></dt><dd><p>When provided, <code class="docutils literal notranslate"><span class="pre">intervals</span></code> must be DataFrame-like and the selected
+column supplies the numeric intervals. All remaining columns are
+treated as metadata.</p>
+</dd>
+<dt>meta<span class="classifier">Optional[Any]</span></dt><dd><p>Optional metadata with one row per input interval. Anything that can
+be converted to <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> is accepted. Ignored when
+<code class="docutils literal notranslate"><span class="pre">column</span></code> is provided. Rows corresponding to <code class="docutils literal notranslate"><span class="pre">np.nan</span></code> boundaries
+are dropped automatically when <code class="docutils literal notranslate"><span class="pre">split_at_nan</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</dd>
+<dt>meta_columns<span class="classifier">Optional[Iterable[str]], optional</span></dt><dd><p>Names of metadata columns to retain. When <code class="docutils literal notranslate"><span class="pre">None</span></code> all columns are
+kept.</p>
+</dd>
+<dt>meta_constants<span class="classifier">Optional[Mapping[str, Any]], optional</span></dt><dd><p>Constant metadata columns to add to each resulting segment.</p>
+</dd>
+<dt>meta_agg<span class="classifier">Aggregator</span></dt><dd><p>Aggregation function that converts per-interval metadata into a
+single record for each produced segment. Defaults to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">get_aggregator(&quot;copy&quot;)()</span></code>.</p>
+</dd>
+<dt><a href="#id4"><span class="problematic" id="id5">**</span></a>from_segments_kwargs<span class="classifier">Any</span></dt><dd><p>Additional keyword arguments forwarded to <a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.from_segments" title="rhythmic_segments.segments.RhythmicSegments.from_segments"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_segments()</span></code></a>.</p>
+</dd>
+</dl>
+</section>
+<section id="id6">
+<h3>Examples<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_intervals</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">1.25</span><span class="p">],</span> <span class="n">length</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">segments</span>
+</span><span data-line="3"><span class="go">array([[0.5 , 1.  ],</span>
+</span><span data-line="4"><span class="go">       [1.  , 0.75],</span>
+</span><span data-line="5"><span class="go">       [0.75, 1.25]], dtype=float32)</span>
+</span><span data-line="6"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">patterns</span>
+</span><span data-line="7"><span class="go">array([[0.33333334, 0.6666667 ],</span>
+</span><span data-line="8"><span class="go">       [0.5714286 , 0.42857143],</span>
+</span><span data-line="9"><span class="go">       [0.375     , 0.625     ]], dtype=float32)</span>
+</span><span data-line="10"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">durations</span>
+</span><span data-line="11"><span class="go">array([1.5 , 1.75, 2.  ], dtype=float32)</span>
+</span></pre></div>
+</div>
+<p>By default, np.nan values are treated as boundaries between blocks of intervals.
+Segments are not allowed to cross such boundaries, as in the following example.
+This behaviour can be disabled using <cite>split_at_nan=False</cite>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">intervals</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">]</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_intervals</span><span class="p">(</span><span class="n">intervals</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span><span data-line="3"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">segments</span>
+</span><span data-line="4"><span class="go">array([[1., 2.],</span>
+</span><span data-line="5"><span class="go">   [2., 3.],</span>
+</span><span data-line="6"><span class="go">   [4., 5.],</span>
+</span><span data-line="7"><span class="go">   [6., 7.],</span>
+</span><span data-line="8"><span class="go">   [7., 8.]], dtype=float32)</span>
+</span></pre></div>
+</div>
+<p>You can also pass metadata. It has to have the same shape as the intervals: rows corresponding
+to NaN intervals will be dropped, essentially. An aggregator function specifies how meta rows
+for all intervals in a segment are combined into the metadata for that segment. Here is an
+example where the labels of intervals in a segment are joined by dashes to form a segment label.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">intervals</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">meta</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;nan&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">]}</span>
+</span><span data-line="3"><span class="gp">&gt;&gt;&gt; </span><span class="n">agg</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">df</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;labels&#39;</span><span class="p">:</span> <span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">])}</span>
+</span><span data-line="4"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_intervals</span><span class="p">(</span><span class="n">intervals</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="n">meta</span><span class="p">,</span> <span class="n">meta_agg</span><span class="o">=</span><span class="n">agg</span><span class="p">)</span>
+</span><span data-line="5"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">segments</span>
+</span><span data-line="6"><span class="go">array([[0.5 , 1.  ],</span>
+</span><span data-line="7"><span class="go">   [0.75, 1.  ]], dtype=float32)</span>
+</span><span data-line="8"><span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">rs</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">])</span>
+</span><span data-line="9"><span class="go">[&#39;a-b&#39;, &#39;c-d&#39;]</span>
+</span></pre></div>
+</div>
+<p>The returned object’s metadata always contains a <code class="docutils literal notranslate"><span class="pre">step</span></code> column that
+records the within-block index of each segment.</p>
+<p>If the number of intervals is smaller than the segment length, a warning is thrown,
+this can be turned off using the warn_on_short flag:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_intervals</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">length</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</span><span data-line="2"><span class="gt">Traceback (most recent call last):</span>
+</span><span data-line="3"><span class="c">...</span>
+</span><span data-line="4"><span class="gr">ValueError</span>: <span class="n">Not enough intervals to form a segment of length 3; requires at least 3 intervals.</span>
+</span></pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_intervals</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">length</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span><span data-line="2"><span class="go">RhythmicSegments(segment_length=2, n_segments=1, meta_columns=[step], segments=[[1., 2.]])</span>
+</span></pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.from_events">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_nan</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_at_nan</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_constants</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">collections.abc.Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_meta_agg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">rhythmic_segments.meta.Aggregator</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">_AGG_FIRST</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segment_meta_agg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">rhythmic_segments.meta.Aggregator</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">_AGG_COPY</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">from_intervals_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments" title="rhythmic_segments.segments.RhythmicSegments"><span class="pre">RhythmicSegments</span></a></span></span><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.from_events" title="Link to this definition">¶</a></dt>
+<dd><p>Create an instance from timestamped event data.</p>
+<section id="id7">
+<h3>Parameters<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>events<span class="classifier">Iterable[Any]</span></dt><dd><p>Monotonic (or at least ordered) series of onset timestamps. Must be
+convertible to <code class="docutils literal notranslate"><span class="pre">float</span></code>.</p>
+</dd>
+<dt>length<span class="classifier">int</span></dt><dd><p>Segment length passed to <a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.from_intervals" title="rhythmic_segments.segments.RhythmicSegments.from_intervals"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_intervals()</span></code></a>. Must be at least <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p>
+</dd>
+<dt>drop_nan<span class="classifier">bool, optional</span></dt><dd><p>Remove <code class="docutils literal notranslate"><span class="pre">NaN</span></code> timestamps before differencing. When <code class="docutils literal notranslate"><span class="pre">False</span></code>
+(default), the resulting interval stream will contain <code class="docutils literal notranslate"><span class="pre">NaN</span></code>
+markers wherever the original event data did, which in turn act as
+block boundaries for <a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.from_intervals" title="rhythmic_segments.segments.RhythmicSegments.from_intervals"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_intervals()</span></code></a>.</p>
+</dd>
+<dt>split_at_nan<span class="classifier">bool, optional</span></dt><dd><p>Forwarded to <a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.from_intervals" title="rhythmic_segments.segments.RhythmicSegments.from_intervals"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_intervals()</span></code></a>. When <code class="docutils literal notranslate"><span class="pre">True</span></code> (default),
+segments never span <code class="docutils literal notranslate"><span class="pre">NaN</span></code> intervals; <code class="docutils literal notranslate"><span class="pre">False</span></code> disables the
+boundary handling.</p>
+</dd>
+<dt>column<span class="classifier">Optional[str], optional</span></dt><dd><p>When provided, <code class="docutils literal notranslate"><span class="pre">events</span></code> must be DataFrame-like and the specified
+column supplies the timestamp values. All remaining columns are
+treated as metadata.</p>
+</dd>
+<dt>meta<span class="classifier">Optional[Any]</span></dt><dd><p>Optional metadata aligned with the input events. Anything that can be
+converted to <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> is accepted. Ignored when
+<code class="docutils literal notranslate"><span class="pre">column</span></code> is provided. When
+<code class="docutils literal notranslate"><span class="pre">drop_nan=True</span></code> the rows corresponding to dropped events are
+removed automatically.</p>
+</dd>
+<dt>meta_columns<span class="classifier">Optional[Iterable[str]], optional</span></dt><dd><p>Names of metadata columns to retain. When <code class="docutils literal notranslate"><span class="pre">None</span></code> all columns are
+preserved.</p>
+</dd>
+<dt>meta_constants<span class="classifier">Optional[Mapping[str, Any]], optional</span></dt><dd><p>Constant metadata columns to add to each resulting segment.</p>
+</dd>
+<dt>interval_meta_agg<span class="classifier">Aggregator</span></dt><dd><p>Aggregation function that combines metadata for pairs of consecutive
+events into per-interval records. Defaults to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">get_aggregator(&quot;first&quot;)()</span></code>.</p>
+</dd>
+<dt>segment_meta_agg<span class="classifier">Aggregator</span></dt><dd><p>Forwarded to <a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.from_intervals" title="rhythmic_segments.segments.RhythmicSegments.from_intervals"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_intervals()</span></code></a> to transform per-interval
+metadata into per-segment records. Defaults to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">get_aggregator(&quot;copy&quot;)()</span></code>.</p>
+</dd>
+<dt><a href="#id8"><span class="problematic" id="id9">**</span></a>from_intervals_kwargs<span class="classifier">Any</span></dt><dd><p>Additional keyword arguments forwarded to <a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.from_intervals" title="rhythmic_segments.segments.RhythmicSegments.from_intervals"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_intervals()</span></code></a>,
+such as <code class="docutils literal notranslate"><span class="pre">dtype</span></code>.</p>
+</dd>
+</dl>
+</section>
+<section id="id10">
+<h3>Examples<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">events</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">]</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_events</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span><span data-line="3"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">segments</span>
+</span><span data-line="4"><span class="go">array([[0.5, 0.5],</span>
+</span><span data-line="5"><span class="go">   [0.5, 0.5]], dtype=float32)</span>
+</span></pre></div>
+</div>
+<p>Segments never span the <code class="docutils literal notranslate"><span class="pre">np.nan</span></code> boundary. To discard the boundary
+entirely, enable <code class="docutils literal notranslate"><span class="pre">drop_nan=True</span></code>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_events</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">drop_nan</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">segments</span>
+</span><span data-line="2"><span class="go">array([[0.5, 0.5],</span>
+</span><span data-line="3"><span class="go">    [0.5, 0.5],</span>
+</span><span data-line="4"><span class="go">    [0.5, 0.5],</span>
+</span><span data-line="5"><span class="go">    [0.5, 0.5]], dtype=float32)</span>
+</span></pre></div>
+</div>
+<p>The resulting metadata includes a <code class="docutils literal notranslate"><span class="pre">start_time</span></code> column storing the
+absolute onset of each segment.</p>
+<p>Note that passing <code class="docutils literal notranslate"><span class="pre">split_at_nan=False</span></code> while retaining the <code class="docutils literal notranslate"><span class="pre">NaN</span></code> intervals
+will raise an error because <a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments.from_intervals" title="rhythmic_segments.segments.RhythmicSegments.from_intervals"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_intervals()</span></code></a> forbids segments crossing
+the boundary:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_events</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">split_at_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span data-line="2"><span class="gt">Traceback (most recent call last):</span>
+</span><span data-line="3"><span class="c">...</span>
+</span><span data-line="4"><span class="gr">ValueError</span>: <span class="n">Intervals contain NaN values; enable split_at_nan or preprocess via split_into_blocks().</span>
+</span></pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.concat">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">concat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments" title="rhythmic_segments.segments.RhythmicSegments"><span class="pre">RhythmicSegments</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments" title="rhythmic_segments.segments.RhythmicSegments"><span class="pre">RhythmicSegments</span></a></span></span><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.concat" title="Link to this definition">¶</a></dt>
+<dd><p>Concatenate multiple <a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments" title="rhythmic_segments.segments.RhythmicSegments"><code class="xref py py-class docutils literal notranslate"><span class="pre">RhythmicSegments</span></code></a> objects.</p>
+<p>Metadata columns are merged using <code class="xref py py-func docutils literal notranslate"><span class="pre">pandas.concat()</span></code>; missing values
+are filled with <code class="docutils literal notranslate"><span class="pre">NaN</span></code> as usual.</p>
+<section id="id11">
+<h3>Parameters<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>segments<span class="classifier">RhythmicSegments</span></dt><dd><p>Objects to concatenate.</p>
+</dd>
+<dt>source_col<span class="classifier">Optional[str]</span></dt><dd><p>Name of a metadata column storing the positional index of the source
+object. <code class="docutils literal notranslate"><span class="pre">None</span></code> disables the column.</p>
+</dd>
+</dl>
+</section>
+<section id="id12">
+<h3>Examples<a class="headerlink" href="#id12" title="Link to this heading">¶</a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs1</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_segments</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]],</span> <span class="n">meta</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">]))</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs2</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_segments</span><span class="p">([[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]],</span> <span class="n">meta</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">]))</span>
+</span><span data-line="3"><span class="gp">&gt;&gt;&gt; </span><span class="n">merged</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">rs1</span><span class="p">,</span> <span class="n">rs2</span><span class="p">,</span> <span class="n">source_col</span><span class="o">=</span><span class="s1">&#39;source&#39;</span><span class="p">)</span>
+</span><span data-line="4"><span class="gp">&gt;&gt;&gt; </span><span class="n">merged</span><span class="o">.</span><span class="n">segments</span>
+</span><span data-line="5"><span class="go">array([[1., 2.],</span>
+</span><span data-line="6"><span class="go">       [3., 4.]], dtype=float32)</span>
+</span><span data-line="7"><span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">merged</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">])</span>
+</span><span data-line="8"><span class="go">[0, 1]</span>
+</span></pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.count">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">count</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.count" title="Link to this definition">¶</a></dt>
+<dd><p>Number of stored segments.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.step">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">step</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pandas.Series</span></em><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.step" title="Link to this definition">¶</a></dt>
+<dd><p>Within-block step index for each segment.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.start_time">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">start_time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pandas.Series</span></em><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.start_time" title="Link to this definition">¶</a></dt>
+<dd><p>Absolute start time for each segment.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.pat">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pat</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.pat" title="Link to this definition">¶</a></dt>
+<dd><p>Shorthand for the pattern coordinates without the final entry.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_segments</span><span class="p">([[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]])</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">patterns</span>
+</span><span data-line="3"><span class="go">array([[0.25, 0.5 , 0.25]], dtype=float32)</span>
+</span><span data-line="4"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">pat</span>
+</span><span data-line="5"><span class="go">array([[0.25, 0.5 ]], dtype=float32)</span>
+</span></pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.dur">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dur</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.dur" title="Link to this definition">¶</a></dt>
+<dd><p>Shorthand for segment durations.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_segments</span><span class="p">([[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]])</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">durations</span>
+</span><span data-line="3"><span class="go">array([4.], dtype=float32)</span>
+</span><span data-line="4"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">dur</span>
+</span><span data-line="5"><span class="go">array([4.], dtype=float32)</span>
+</span></pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.ratio">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ratio</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.ratio" title="Link to this definition">¶</a></dt>
+<dd><p>Rhythm ratios of the segments.</p>
+<p>This is an alias of alias of <code class="docutils literal notranslate"><span class="pre">patterns[:,</span> <span class="pre">0]</span></code>, and only defined for length-two
+segments. It raises a <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code> when called on segments with length other
+than two.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_segments</span><span class="p">([[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]])</span><span class="o">.</span><span class="n">ratio</span>
+</span><span data-line="2"><span class="go">array([0.5], dtype=float32)</span>
+</span><span data-line="3"><span class="gp">&gt;&gt;&gt; </span><span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_segments</span><span class="p">([[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]])</span><span class="o">.</span><span class="n">ratio</span>
+</span><span data-line="4"><span class="gt">Traceback (most recent call last):</span>
+</span><span data-line="5"><span class="c">...</span>
+</span><span data-line="6"><span class="gr">ValueError</span>: <span class="n">Ratios are only defined for length-two segments.</span>
+</span></pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.patdur">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">patdur</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.patdur" title="Link to this definition">¶</a></dt>
+<dd><p>Matrix of coordinates in pattern-duration space.</p>
+<p>Equivalent to <code class="docutils literal notranslate"><span class="pre">np.column_stack((rs.pat,</span> <span class="pre">rs.durations))</span></code>: all but the
+final pattern column followed by the duration column, giving a point in
+pattern-duration space for each segment.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_segments</span><span class="p">([[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]])</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">patdur</span>
+</span><span data-line="3"><span class="go">array([[0.25, 0.5 , 4.  ]], dtype=float32)</span>
+</span></pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.take">
+<span class="sig-name descname"><span class="pre">take</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments" title="rhythmic_segments.segments.RhythmicSegments"><span class="pre">RhythmicSegments</span></a></span></span><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.take" title="Link to this definition">¶</a></dt>
+<dd><p>Return a new instance containing only the segments at <em>idx</em>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_segments</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]],</span> <span class="n">meta</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]))</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">take</span><span class="p">([</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">segments</span>
+</span><span data-line="3"><span class="go">array([[3., 4.]], dtype=float32)</span>
+</span><span data-line="4"><span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">rs</span><span class="o">.</span><span class="n">take</span><span class="p">([</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">])</span>
+</span><span data-line="5"><span class="go">[1]</span>
+</span></pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.filter">
+<span class="sig-name descname"><span class="pre">filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">pandas.Series</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments" title="rhythmic_segments.segments.RhythmicSegments"><span class="pre">RhythmicSegments</span></a></span></span><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.filter" title="Link to this definition">¶</a></dt>
+<dd><p>Return a new instance containing segments where <em>mask</em> is true.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_segments</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]],</span> <span class="n">meta</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]))</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">filter</span><span class="p">([</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">])</span><span class="o">.</span><span class="n">segments</span>
+</span><span data-line="3"><span class="go">array([[1., 2.]], dtype=float32)</span>
+</span></pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.filter_by_duration">
+<span class="sig-name descname"><span class="pre">filter_by_duration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_quantile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_quantile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments" title="rhythmic_segments.segments.RhythmicSegments"><span class="pre">RhythmicSegments</span></a></span></span><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.filter_by_duration" title="Link to this definition">¶</a></dt>
+<dd><p>Return a new instance filtered by duration thresholds.</p>
+<section id="id13">
+<h3>Parameters<a class="headerlink" href="#id13" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>min_value, max_value<span class="classifier">Optional[float], optional</span></dt><dd><p>Absolute duration bounds (inclusive). When supplied, these override
+the corresponding quantile parameters.</p>
+</dd>
+<dt>min_quantile, max_quantile<span class="classifier">Optional[float], optional</span></dt><dd><p>Quantile-based bounds (inclusive) used when explicit <code class="docutils literal notranslate"><span class="pre">min_value</span></code> or
+<code class="docutils literal notranslate"><span class="pre">max_value</span></code> are not provided. Pass <code class="docutils literal notranslate"><span class="pre">None</span></code> to disable a bound.</p>
+</dd>
+</dl>
+</section>
+<section id="id14">
+<h3>Examples<a class="headerlink" href="#id14" title="Link to this heading">¶</a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_segments</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]])</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">durations</span>
+</span><span data-line="3"><span class="go">array([ 3.,  7., 11.], dtype=float32)</span>
+</span><span data-line="4"><span class="gp">&gt;&gt;&gt; </span><span class="n">short</span> <span class="o">=</span> <span class="n">rs</span><span class="o">.</span><span class="n">filter_by_duration</span><span class="p">(</span><span class="n">max_quantile</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+</span><span data-line="5"><span class="gp">&gt;&gt;&gt; </span><span class="n">short</span><span class="o">.</span><span class="n">durations</span>
+</span><span data-line="6"><span class="go">array([3., 7.], dtype=float32)</span>
+</span><span data-line="7"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">filter_by_duration</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mf">8.0</span><span class="p">)</span><span class="o">.</span><span class="n">durations</span>
+</span><span data-line="8"><span class="go">array([11.], dtype=float32)</span>
+</span><span data-line="9"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">filter_by_duration</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mf">8.0</span><span class="p">)</span><span class="o">.</span><span class="n">durations</span>
+</span><span data-line="10"><span class="go">array([3., 7.], dtype=float32)</span>
+</span><span data-line="11"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">filter_by_duration</span><span class="p">()</span>
+</span><span data-line="12"><span class="gt">Traceback (most recent call last):</span>
+</span><span data-line="13"><span class="c">...</span>
+</span><span data-line="14"><span class="gr">ValueError</span>: <span class="n">At least one duration bound must be specified</span>
+</span></pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.with_meta">
+<span class="sig-name descname"><span class="pre">with_meta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">cols</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments" title="rhythmic_segments.segments.RhythmicSegments"><span class="pre">RhythmicSegments</span></a></span></span><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.with_meta" title="Link to this definition">¶</a></dt>
+<dd><p>Return a new instance with additional metadata columns.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_segments</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]])</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">with_meta</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+</span><span data-line="3"><span class="go">[&#39;a&#39;, &#39;b&#39;]</span>
+</span></pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.query">
+<span class="sig-name descname"><span class="pre">query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">query_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments" title="rhythmic_segments.segments.RhythmicSegments"><span class="pre">RhythmicSegments</span></a></span></span><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.query" title="Link to this definition">¶</a></dt>
+<dd><p>Return a new instance filtered by evaluating <em>expr</em> on the metadata.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_segments</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]],</span> <span class="n">meta</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]})</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;id == 1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">segments</span>
+</span><span data-line="3"><span class="go">array([[3., 4.]], dtype=float32)</span>
+</span></pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="rhythmic_segments.segments.RhythmicSegments.shuffle">
+<span class="sig-name descname"><span class="pre">shuffle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#rhythmic_segments.segments.RhythmicSegments" title="rhythmic_segments.segments.RhythmicSegments"><span class="pre">RhythmicSegments</span></a></span></span><a class="headerlink" href="#rhythmic_segments.segments.RhythmicSegments.shuffle" title="Link to this definition">¶</a></dt>
+<dd><p>Return a new instance with rows shuffled uniformly at random.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_segments</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]])</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">segments</span>
+</span><span data-line="3"><span class="go">array([[3., 4.],</span>
+</span><span data-line="4"><span class="go">   [1., 2.]], dtype=float32)</span>
+</span></pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="../../../api.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">API Reference</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="../patterns/index.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">rhythmic_segments.patterns</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
+    </a>
+  </div></div></div>
+    </div>
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2025, Bas Cornelissen</p>
+  
+  <p>
+    Made with
+    
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials"></div>
+    </div>
+  </div>
+</footer>
+      <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../../_static/copybutton.js?v=f281be69"></script>
+      <script src="../../../_static/shibuya.js?v=e730760c"></script></body>
+</html>

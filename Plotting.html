@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en" data-accent-color="violet" data-content_root="./">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Plotting - Rhythmic Segments documentation</title><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="API Reference" href="api.html" /><link rel="prev" title="Handling metadata" href="Metadata.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"auto");
+  </script><link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b1a1f93b" />
+    <link rel="stylesheet" type="text/css" href="_static/shibuya.css?v=bb284d7b" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    <link media="print" rel="stylesheet" type="text/css" href="_static/print.css?v=20ff2c19" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=34b0ee1f" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    <meta property="og:type" content="website"/><meta property="og:title" content="Plotting"/>
+<meta name="twitter:card" content="summary"/>
+  </head>
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="index.html">
+      
+      
+      <strong>Rhythmic Segments</strong>
+    </a>
+    <div class="sy-head-nav" id="head-nav">
+      <nav class="sy-head-links"></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials"></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="head-nav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2"></span>
+          <span class="hamburger_3"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="0"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Basic%20Usage.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Operations.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Metadata.html">Metadata</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="autoapi/rhythmic_segments/segments/index.html">segments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autoapi/rhythmic_segments/patterns/index.html">patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autoapi/rhythmic_segments/helpers/index.html">helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autoapi/rhythmic_segments/meta/index.html">meta</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#pattern-duration-plot">Pattern-duration plot</a></li>
+<li><a class="reference internal" href="#phase-plot">Phase plot</a></li>
+<li><a class="reference internal" href="#triangle-plot">Triangle plot</a></li>
+<li><a class="reference internal" href="#references">References</a></li>
+</ul>
+</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6">
+<div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="index.html"><span itemprop="name">Rhythmic Segments</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">Plotting</strong>
+        <meta itemprop="position" content="2" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+        <article class="yue" role="main">
+          <section class="tex2jax_ignore mathjax_ignore" id="plotting">
+<h1>Plotting<a class="headerlink" href="#plotting" title="Link to this heading">¶</a></h1>
+<p>In this notebook we look at visualizing rhythmic segments. The package does not (currently) provide any plotting functionality. In fact, you hardly need any once you have organized your data in a convenient format. And that is precisely what the package does for you.</p>
+<p>We will use rhythmic data from Roeske et al. (2020): inter-onset intervals for seperated instruments from a recording of Cuban Salsa &amp; Son music, part of the Interpersonal Entrainment in Music Performance (IEMP) corpus (<a class="reference external" href="https://osf.io/37fws/">https://osf.io/37fws/</a>).</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+</span><span data-line="2"><span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">BytesIO</span>
+</span><span data-line="3"><span class="kn">import</span><span class="w"> </span><span class="nn">scipy.io</span>
+</span><span data-line="4">
+</span><span data-line="5"><span class="c1"># We load the data directly from Mendeley</span>
+</span><span data-line="6"><span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://data.mendeley.com/public-files/datasets/s4cjj7h5sv/files/459bd50f-2e6d-43b0-807a-ffde2c126898/file_downloaded&quot;</span>
+</span><span data-line="7"><span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+</span><span data-line="8"><span class="n">mat_contents</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">loadmat</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">))</span>
+</span><span data-line="9"><span class="n">intervals</span> <span class="o">=</span> <span class="n">mat_contents</span><span class="p">[</span><span class="s1">&#39;CubanSalsa_intervals_ms&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+</span><span data-line="10"><span class="n">intervals</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span data-line="1">array([242.425, 239.653, 439.947, ..., 112.154, 117.026, 287.888],
+</span><span data-line="2">      shape=(38222,))
+</span></pre></div>
+</div>
+</div>
+</div>
+<section id="pattern-duration-plot">
+<h2>Pattern-duration plot<a class="headerlink" href="#pattern-duration-plot" title="Link to this heading">¶</a></h2>
+<p>A pattern-duration plot shows both the pattern and the duration of each segment. For length-2 segments, the pattern can be identified with a single number: the relative duration of the first interval. For example, the segment <span class="math notranslate nohighlight">\((2, 6)\)</span> has pattern <span class="math notranslate nohighlight">\((.25, .75)\)</span> and can be represented using the first number, <span class="math notranslate nohighlight">\(0.25\)</span>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span data-line="2"><span class="kn">from</span><span class="w"> </span><span class="nn">rhythmic_segments</span><span class="w"> </span><span class="kn">import</span> <span class="n">RhythmicSegments</span>
+</span><span data-line="3"><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+</span></pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="c1"># Extract the segments of length 2, dropping the longest 5%</span>
+</span><span data-line="2"><span class="n">rs</span> <span class="o">=</span> <span class="p">(</span><span class="n">RhythmicSegments</span>
+</span><span data-line="3">       <span class="o">.</span><span class="n">from_intervals</span><span class="p">(</span><span class="n">intervals</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span><span data-line="4">       <span class="o">.</span><span class="n">filter_by_duration</span><span class="p">(</span><span class="n">max_quantile</span><span class="o">=</span><span class="mf">.95</span><span class="p">))</span>
+</span></pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">rs</span><span class="o">.</span><span class="n">pat</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">rs</span><span class="o">.</span><span class="n">dur</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mf">.2</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">.1</span><span class="p">)</span>
+</span><span data-line="2"><span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Pattern-duration plot for 2-interval segments&#39;</span><span class="p">)</span>
+</span><span data-line="3"><span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Pattern (relative duration of first interval)&#39;</span><span class="p">)</span>
+</span><span data-line="4"><span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Duration (ms)&#39;</span><span class="p">)</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span data-line="1">Text(0, 0.5, &#39;Duration (ms)&#39;)
+</span></pre></div>
+</div>
+<img alt="_images/c07cef8fc088492c8045e4d1ca251ef121c3174292f2fa51db3bbab763ba49df.png" src="_images/c07cef8fc088492c8045e4d1ca251ef121c3174292f2fa51db3bbab763ba49df.png" />
+</div>
+</div>
+<p>Alternatively, you can use a hexbin plot to better visualize the density of points:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">plt</span><span class="o">.</span><span class="n">hexbin</span><span class="p">(</span><span class="n">rs</span><span class="o">.</span><span class="n">ratio</span><span class="p">,</span> <span class="n">rs</span><span class="o">.</span><span class="n">dur</span><span class="p">,</span> <span class="n">gridsize</span><span class="o">=</span><span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="mi">60</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Blues&#39;</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+</span><span data-line="2"><span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Segment count&#39;</span><span class="p">)</span>
+</span><span data-line="3"><span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Pattern-duration hexbin plot for 2-interval segments&#39;</span><span class="p">)</span>
+</span><span data-line="4"><span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Pattern (relative duration of first interval)&#39;</span><span class="p">)</span>
+</span><span data-line="5"><span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Duration (ms)&#39;</span><span class="p">)</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span data-line="1">Text(0, 0.5, &#39;Duration (ms)&#39;)
+</span></pre></div>
+</div>
+<img alt="_images/215b224f910b968226340fb9bb951a895a7cf606ffba6ab600c8406cf669d596.png" src="_images/215b224f910b968226340fb9bb951a895a7cf606ffba6ab600c8406cf669d596.png" />
+</div>
+</div>
+</section>
+<section id="phase-plot">
+<h2>Phase plot<a class="headerlink" href="#phase-plot" title="Link to this heading">¶</a></h2>
+<p>A phase plot (see e.g. Ravignani, 2017) shows all segments in a scatter plot, with the first interval on the x-axis and the second interval on the y-axis. This is only possible for length-2 segments.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">rs</span><span class="o">.</span><span class="n">segments</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">rs</span><span class="o">.</span><span class="n">segments</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mf">.1</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">.1</span><span class="p">)</span>
+</span><span data-line="2"><span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;First interval (ms)&#39;</span><span class="p">)</span>
+</span><span data-line="3"><span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Second interval (ms)&#39;</span><span class="p">)</span>
+</span><span data-line="4"><span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Phase plot of 2-interval segments&#39;</span><span class="p">)</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span data-line="1">Text(0.5, 1.0, &#39;Phase plot of 2-interval segments&#39;)
+</span></pre></div>
+</div>
+<img alt="_images/17de08eb534dad24c06fb08fab6d9314b746be5e91e01ab6f4d252e058cee66e.png" src="_images/17de08eb534dad24c06fb08fab6d9314b746be5e91e01ab6f4d252e058cee66e.png" />
+</div>
+</div>
+</section>
+<section id="triangle-plot">
+<h2>Triangle plot<a class="headerlink" href="#triangle-plot" title="Link to this heading">¶</a></h2>
+<p>Next, we look at visualizing patterns of length 3:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">rs3</span> <span class="o">=</span> <span class="p">(</span><span class="n">RhythmicSegments</span>
+</span><span data-line="2">       <span class="o">.</span><span class="n">from_intervals</span><span class="p">(</span><span class="n">intervals</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</span><span data-line="3">       <span class="o">.</span><span class="n">filter_by_duration</span><span class="p">(</span><span class="n">max_quantile</span><span class="o">=</span><span class="mf">.95</span><span class="p">))</span>
+</span></pre></div>
+</div>
+</div>
+</div>
+<p>Patterns of length 3 live in a two dimensional simplex, which is a triangular space.
+We can easily visualize the distribution of length-3 segments using the <a class="reference external" href="https://mpltern.readthedocs.io">matpltern</a> package.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">import</span><span class="w"> </span><span class="nn">mpltern</span> <span class="c1"># noqa: F401</span>
+</span><span data-line="2"><span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">Normalize</span>
+</span><span data-line="3"><span class="kn">from</span><span class="w"> </span><span class="nn">mpltern.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_triangular_grid</span>
+</span><span data-line="4">
+</span><span data-line="5"><span class="c1"># Use a linear color map to visualize segment duration</span>
+</span><span data-line="6"><span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;plasma_r&#39;</span><span class="p">)</span>
+</span><span data-line="7"><span class="n">norm</span> <span class="o">=</span> <span class="n">Normalize</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">rs3</span><span class="o">.</span><span class="n">durations</span><span class="p">),</span> <span class="n">vmax</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">rs3</span><span class="o">.</span><span class="n">durations</span><span class="p">))</span>
+</span><span data-line="8"><span class="n">colors</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">(</span><span class="n">norm</span><span class="p">(</span><span class="n">rs3</span><span class="o">.</span><span class="n">durations</span><span class="p">))</span>
+</span><span data-line="9">
+</span><span data-line="10"><span class="c1"># Scatterplot in ternary plot</span>
+</span><span data-line="11"><span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="s2">&quot;ternary&quot;</span><span class="p">)</span>
+</span><span data-line="12"><span class="n">top</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="n">rs3</span><span class="o">.</span><span class="n">patterns</span><span class="o">.</span><span class="n">T</span>
+</span><span data-line="13"><span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mf">.02</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">.5</span><span class="p">)</span>
+</span><span data-line="14">
+</span><span data-line="15"><span class="c1"># Add triangular grid</span>
+</span><span data-line="16"><span class="n">ax</span><span class="o">.</span><span class="n">triplot</span><span class="p">(</span><span class="o">*</span><span class="n">get_triangular_grid</span><span class="p">(</span><span class="mi">8</span><span class="p">),</span> <span class="s1">&#39;k-&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">.5</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+</span><span data-line="17">
+</span><span data-line="18"><span class="c1"># Show colorbar</span>
+</span><span data-line="19"><span class="n">sm</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">ScalarMappable</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">)</span>
+</span><span data-line="20"><span class="n">sm</span><span class="o">.</span><span class="n">set_array</span><span class="p">([])</span>  <span class="c1"># Needed for colorbar to work</span>
+</span><span data-line="21"><span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">sm</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Duration (ms)&#39;</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span data-line="1">&lt;matplotlib.colorbar.Colorbar at 0x7f073c346810&gt;
+</span></pre></div>
+</div>
+<img alt="_images/e1fd4474aade35f9ff29d6cd723817871c4f152310b9a44e90f866ab9ee0a029.png" src="_images/e1fd4474aade35f9ff29d6cd723817871c4f152310b9a44e90f866ab9ee0a029.png" />
+</div>
+</div>
+<p>Alternatively, you can use a tribin (or hexbin) plot to visualize density of segments in pattern space, but then you cannot visualize duration at the same time.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="s2">&quot;ternary&quot;</span><span class="p">)</span>
+</span><span data-line="2"><span class="n">top</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="n">rs3</span><span class="o">.</span><span class="n">patterns</span><span class="o">.</span><span class="n">T</span>
+</span><span data-line="3"><span class="n">ax</span><span class="o">.</span><span class="n">tribin</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;plasma_r&quot;</span><span class="p">)</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span data-line="1">&lt;matplotlib.collections.PolyCollection at 0x7f073c389f50&gt;
+</span></pre></div>
+</div>
+<img alt="_images/d63c1556e448591147fd265dc7465615285c5bb1d68b1e3e79a1f401d49bf5c4.png" src="_images/d63c1556e448591147fd265dc7465615285c5bb1d68b1e3e79a1f401d49bf5c4.png" />
+</div>
+</div>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h2>
+<p>Ravignani, A. (2017). Visualizing and Interpreting Rhythmic Patterns Using Phase Space Plots. Music Perception, 35(5), 557–568. <a class="reference external" href="https://doi.org/10.1525/mp.2017.34.5.557">https://doi.org/10.1525/mp.2017.34.5.557</a></p>
+<p>Roeske, Tina; Jacoby, Nori (2020), “Musical rhythm: Onsets/intervals of seven music corpora”, Mendeley Data, V2, <a class="reference external" href="https://doi.org/10.17632/s4cjj7h5sv.2">https://doi.org/10.17632/s4cjj7h5sv.2</a></p>
+<p>Roeske, T. C., Tchernichovski, O., Poeppel, D., &amp; Jacoby, N. (2020). Categorical Rhythms Are Shared between Songbirds and Humans. Current Biology, 30(18), P3544-3555.e6. <a class="reference external" href="https://doi.org/10.1016/j.cub.2020.06.072">https://doi.org/10.1016/j.cub.2020.06.072</a></p>
+</section>
+</section>
+
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="Metadata.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">Handling metadata</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="api.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">API Reference</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
+    </a>
+  </div></div></div>
+    </div>
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2025, Bas Cornelissen</p>
+  
+  <p>
+    Made with
+    
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials"></div>
+    </div>
+  </div>
+</footer>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script src="_static/shibuya.js?v=e730760c"></script>
+      <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script></body>
+</html>

@@ -1,0 +1,18 @@
+rhythmic_segments
+=================
+
+.. py:module:: rhythmic_segments
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/rhythmic_segments/helpers/index
+   /autoapi/rhythmic_segments/meta/index
+   /autoapi/rhythmic_segments/patterns/index
+   /autoapi/rhythmic_segments/segments/index
+
+

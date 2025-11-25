@@ -1,0 +1,38 @@
+rhythmic_segments.helpers
+=========================
+
+.. py:module:: rhythmic_segments.helpers
+
+.. autoapi-nested-parse::
+
+   Interval utilities shared across rhythmic segments components.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   rhythmic_segments.helpers.split_into_blocks
+
+
+Module Contents
+---------------
+
+.. py:function:: split_into_blocks(data: Union[Sequence[float], numpy.ndarray, pandas.DataFrame], boundaries: collections.abc.Iterable[bool], *, drop_empty: bool = True, copy: bool = True) -> List[Union[numpy.ndarray, pandas.DataFrame]]
+
+   Split *data* into contiguous blocks using ``boundaries``.
+
+   Parameters
+   ----------
+   data : Sequence, np.ndarray, or pandas.DataFrame
+       Interval or metadata values to split.
+   boundaries : Iterable[bool]
+       Boolean mask marking split points.
+   drop_empty : bool, optional
+       Drop zero-length blocks when ``True`` (default).
+   copy : bool, optional
+       Return copies of the underlying data when ``True`` (default).
+
+

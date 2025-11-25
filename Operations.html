@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en" data-accent-color="violet" data-content_root="./">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Operations - Rhythmic Segments documentation</title><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Handling metadata" href="Metadata.html" /><link rel="prev" title="Basic Usage" href="Basic%20Usage.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"auto");
+  </script><link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b1a1f93b" />
+    <link rel="stylesheet" type="text/css" href="_static/shibuya.css?v=bb284d7b" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    <link media="print" rel="stylesheet" type="text/css" href="_static/print.css?v=20ff2c19" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=34b0ee1f" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    <meta property="og:type" content="website"/><meta property="og:title" content="Operations"/>
+<meta name="twitter:card" content="summary"/>
+  </head>
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="index.html">
+      
+      
+      <strong>Rhythmic Segments</strong>
+    </a>
+    <div class="sy-head-nav" id="head-nav">
+      <nav class="sy-head-links"></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials"></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="head-nav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2"></span>
+          <span class="hamburger_3"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="0"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Basic%20Usage.html">Basic usage</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Metadata.html">Metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="autoapi/rhythmic_segments/segments/index.html">segments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autoapi/rhythmic_segments/patterns/index.html">patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autoapi/rhythmic_segments/helpers/index.html">helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autoapi/rhythmic_segments/meta/index.html">meta</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#taking-subsets">Taking subsets</a></li>
+<li><a class="reference internal" href="#filtering-querying">Filtering &amp; querying</a></li>
+<li><a class="reference internal" href="#shuffling">Shuffling</a></li>
+</ul>
+</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6">
+<div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="index.html"><span itemprop="name">Rhythmic Segments</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">Operations</strong>
+        <meta itemprop="position" content="2" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+        <article class="yue" role="main">
+          <section class="tex2jax_ignore mathjax_ignore" id="operations">
+<h1>Operations<a class="headerlink" href="#operations" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">RhythmicSegments</span></code> supports several convenience operations, such as selecting subsets, filtering, querying metadata, and shuffling. Each of these returns a new instance with the metadata kept in sync.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">from</span><span class="w"> </span><span class="nn">rhythmic_segments</span><span class="w"> </span><span class="kn">import</span> <span class="n">RhythmicSegments</span>
+</span></pre></div>
+</div>
+</div>
+</div>
+<section id="taking-subsets">
+<h2>Taking subsets<a class="headerlink" href="#taking-subsets" title="Link to this heading">¶</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">intervals</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">]</span>
+</span><span data-line="2"><span class="n">meta</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="s1">&#39;abcdefghi&#39;</span><span class="p">)</span> <span class="p">}</span>
+</span><span data-line="3"><span class="n">rs</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_intervals</span><span class="p">(</span><span class="n">intervals</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="n">meta</span><span class="p">)</span>
+</span><span data-line="4"><span class="n">rs</span><span class="o">.</span><span class="n">segments</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span data-line="1">array([[1., 2.],
+</span><span data-line="2">       [2., 3.],
+</span><span data-line="3">       [3., 4.],
+</span><span data-line="4">       [4., 5.],
+</span><span data-line="5">       [5., 6.],
+</span><span data-line="6">       [6., 7.],
+</span><span data-line="7">       [7., 8.],
+</span><span data-line="8">       [8., 9.]], dtype=float32)
+</span></pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="c1"># You can do very basic indexing: select the first three segments:</span>
+</span><span data-line="2"><span class="n">head</span> <span class="o">=</span> <span class="n">rs</span><span class="o">.</span><span class="n">take</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+</span><span data-line="3"><span class="n">head</span><span class="o">.</span><span class="n">segments</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span data-line="1">array([[1., 2.],
+</span><span data-line="2">       [2., 3.],
+</span><span data-line="3">       [3., 4.]], dtype=float32)
+</span></pre></div>
+</div>
+</div>
+</div>
+<p>Metadata is preserved as well:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">head</span><span class="o">.</span><span class="n">meta</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>label_1</th>
+      <th>label_2</th>
+      <th>step</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>a</td>
+      <td>b</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>b</td>
+      <td>c</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>c</td>
+      <td>d</td>
+      <td>2</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+</section>
+<section id="filtering-querying">
+<h2>Filtering &amp; querying<a class="headerlink" href="#filtering-querying" title="Link to this heading">¶</a></h2>
+<p>You can also filter segments based on some condition. For example, selecting all segments with a certain duration:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">rs</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">rs</span><span class="o">.</span><span class="n">durations</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">)</span><span class="o">.</span><span class="n">segments</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span data-line="1">array([[5., 6.],
+</span><span data-line="2">       [6., 7.],
+</span><span data-line="3">       [7., 8.],
+</span><span data-line="4">       [8., 9.]], dtype=float32)
+</span></pre></div>
+</div>
+</div>
+</div>
+<p>Since this is a common use case, <code class="docutils literal notranslate"><span class="pre">filter_by_duration</span></code> allows you to filter the duration using a <code class="docutils literal notranslate"><span class="pre">min/max_value</span></code>, or using a quantile set by <code class="docutils literal notranslate"><span class="pre">min/max_quantile</span></code>:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="c1"># Remove all segments with a duration below 6</span>
+</span><span data-line="2"><span class="n">rs</span><span class="o">.</span><span class="n">filter_by_duration</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span><span class="o">.</span><span class="n">segments</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span data-line="1">array([[3., 4.],
+</span><span data-line="2">       [4., 5.],
+</span><span data-line="3">       [5., 6.],
+</span><span data-line="4">       [6., 7.],
+</span><span data-line="5">       [7., 8.],
+</span><span data-line="6">       [8., 9.]], dtype=float32)
+</span></pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="c1"># Keep only the shortest 80% of the segments</span>
+</span><span data-line="2"><span class="n">rs</span><span class="o">.</span><span class="n">filter_by_duration</span><span class="p">(</span><span class="n">max_quantile</span><span class="o">=</span><span class="mf">.8</span><span class="p">)</span><span class="o">.</span><span class="n">segments</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span data-line="1">array([[1., 2.],
+</span><span data-line="2">       [2., 3.],
+</span><span data-line="3">       [3., 4.],
+</span><span data-line="4">       [4., 5.],
+</span><span data-line="5">       [5., 6.],
+</span><span data-line="6">       [6., 7.]], dtype=float32)
+</span></pre></div>
+</div>
+</div>
+</div>
+<p>You can also query metadata using pandas query syntax. For example, selecting all segments whose label contains the letter ‘b’:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">rs</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;label_1.str.contains(&#39;b&#39;) | label_2.str.contains(&#39;b&#39;)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">meta</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>label_1</th>
+      <th>label_2</th>
+      <th>step</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>a</td>
+      <td>b</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>b</td>
+      <td>c</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+</section>
+<section id="shuffling">
+<h2>Shuffling<a class="headerlink" href="#shuffling" title="Link to this heading">¶</a></h2>
+<p>Or shuffle segments:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">rs</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">segments</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span data-line="1">array([[6., 7.],
+</span><span data-line="2">       [1., 2.],
+</span><span data-line="3">       [2., 3.],
+</span><span data-line="4">       [5., 6.],
+</span><span data-line="5">       [3., 4.],
+</span><span data-line="6">       [7., 8.],
+</span><span data-line="7">       [4., 5.],
+</span><span data-line="8">       [8., 9.]], dtype=float32)
+</span></pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="Basic%20Usage.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">Basic Usage</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="Metadata.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">Handling metadata</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
+    </a>
+  </div></div></div>
+    </div>
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2025, Bas Cornelissen</p>
+  
+  <p>
+    Made with
+    
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials"></div>
+    </div>
+  </div>
+</footer>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script src="_static/shibuya.js?v=e730760c"></script></body>
+</html>

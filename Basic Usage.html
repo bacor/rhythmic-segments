@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en" data-accent-color="violet" data-content_root="./">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Basic Usage - Rhythmic Segments documentation</title><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Operations" href="Operations.html" /><link rel="prev" title="Rhythmic Segments" href="index.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"auto");
+  </script><link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b1a1f93b" />
+    <link rel="stylesheet" type="text/css" href="_static/shibuya.css?v=bb284d7b" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    <link media="print" rel="stylesheet" type="text/css" href="_static/print.css?v=20ff2c19" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=34b0ee1f" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    <meta property="og:type" content="website"/><meta property="og:title" content="Basic Usage"/>
+<meta name="twitter:card" content="summary"/>
+  </head>
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="index.html">
+      
+      
+      <strong>Rhythmic Segments</strong>
+    </a>
+    <div class="sy-head-nav" id="head-nav">
+      <nav class="sy-head-links"></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials"></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="head-nav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2"></span>
+          <span class="hamburger_3"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="0"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Getting started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Operations.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Metadata.html">Metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="autoapi/rhythmic_segments/segments/index.html">segments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autoapi/rhythmic_segments/patterns/index.html">patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autoapi/rhythmic_segments/helpers/index.html">helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autoapi/rhythmic_segments/meta/index.html">meta</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#rhythmic-segment-analysis">Rhythmic Segment Analysis</a></li>
+<li><a class="reference internal" href="#segments">Segments</a></li>
+<li><a class="reference internal" href="#intervals">Intervals</a></li>
+<li><a class="reference internal" href="#event-data">Event data</a></li>
+<li><a class="reference internal" href="#dataframes">Dataframes</a></li>
+<li><a class="reference internal" href="#shorthands">Shorthands</a></li>
+</ul>
+</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6">
+<div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="index.html"><span itemprop="name">Rhythmic Segments</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">Basic Usage</strong>
+        <meta itemprop="position" content="2" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+        <article class="yue" role="main">
+          <section class="tex2jax_ignore mathjax_ignore" id="basic-usage">
+<h1>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading">¶</a></h1>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span data-line="2">
+</span><span data-line="3"><span class="kn">from</span><span class="w"> </span><span class="nn">rhythmic_segments</span><span class="w"> </span><span class="kn">import</span> <span class="n">RhythmicSegments</span>
+</span></pre></div>
+</div>
+</div>
+</div>
+<section id="rhythmic-segment-analysis">
+<h2>Rhythmic Segment Analysis<a class="headerlink" href="#rhythmic-segment-analysis" title="Link to this heading">¶</a></h2>
+<p>A <em>rhythmic segment analysis (RSA)</em> analyzes every fixed-length <em>segment</em> of a sequence of time intervals: the short groups you obtain by sliding a window across the data. Each segment has a <em>duration</em> and a <em>pattern</em>. The pattern captures the relative durations of a segment’s intervals, either as a normalized vector or as a ratio. For example, the segment <span class="math notranslate nohighlight">\((2, 4, 4)\)</span> has the pattern <span class="math notranslate nohighlight">\((0.2, 0.4, 0.4)\)</span> or <span class="math notranslate nohighlight">\(1 : 2 : 2\)</span>; both descriptions are interchangeable. Thinking of patterns as normalized vectors shows that all patterns of a given length live on a <em>simplex</em>: a line when <span class="math notranslate nohighlight">\(n = 2\)</span>, a triangle when <span class="math notranslate nohighlight">\(n = 3\)</span>, and so on. The goal is to study rhythmic material by analyzing how its segments are distributed on that simplex.</p>
+<p>Computing patterns is as simple as normalizing the segment:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">segment</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+</span><span data-line="2"><span class="n">pattern</span> <span class="o">=</span> <span class="n">segment</span> <span class="o">/</span> <span class="n">segment</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+</span><span data-line="3"><span class="n">pattern</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span data-line="1">array([0.2, 0.4, 0.4])
+</span></pre></div>
+</div>
+</div>
+</div>
+<p>And so you can absolutely do a rhythmic segment analysis without using this package. This package however provides some utilities that make things easier. In particular, the <code class="docutils literal notranslate"><span class="pre">RhythmicSegments</span></code> class allows you to conveniently store large numbers of segments and handle associated metadata, and makes them accessible via <code class="docutils literal notranslate"><span class="pre">.segments</span></code>, <code class="docutils literal notranslate"><span class="pre">.patterns</span></code>, <code class="docutils literal notranslate"><span class="pre">.durations</span></code>, <code class="docutils literal notranslate"><span class="pre">.meta</span></code>.</p>
+</section>
+<section id="segments">
+<h2>Segments<a class="headerlink" href="#segments" title="Link to this heading">¶</a></h2>
+<p>You can create a RhythmicSegments store from <strong>segment</strong> data, from <strong>interval</strong> data, or from <strong>event</strong> data such as note onset times. These require successively more preprocessing: <code class="docutils literal notranslate"><span class="pre">from_events</span></code> will compute the intervals, and then call <code class="docutils literal notranslate"><span class="pre">from_intervals</span></code>, which will extract all segments and then calls <code class="docutils literal notranslate"><span class="pre">from_segments</span></code>. The simplest, but one you won’t use in practice is therefore <code class="docutils literal notranslate"><span class="pre">from_segments</span></code>:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">segments</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mf">.3</span><span class="p">,</span> <span class="mf">.6</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]</span>
+</span><span data-line="2"><span class="n">rs</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_segments</span><span class="p">(</span><span class="n">segments</span><span class="p">)</span>
+</span><span data-line="3"><span class="n">rs</span><span class="o">.</span><span class="n">patterns</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span data-line="1">array([[0.2       , 0.8       ],
+</span><span data-line="2">       [0.33333334, 0.6666667 ],
+</span><span data-line="3">       [0.5       , 0.5       ]], dtype=float32)
+</span></pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="intervals">
+<h2>Intervals<a class="headerlink" href="#intervals" title="Link to this heading">¶</a></h2>
+<p>In practice, you will usually start from either events or intervals, and use the class to extract the segments for you:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">intervals</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">]</span>
+</span><span data-line="2"><span class="n">rs</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_intervals</span><span class="p">(</span><span class="n">intervals</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</span><span data-line="3"><span class="n">rs</span><span class="o">.</span><span class="n">segments</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span data-line="1">array([[1., 2., 3.],
+</span><span data-line="2">       [2., 3., 4.],
+</span><span data-line="3">       [3., 4., 5.],
+</span><span data-line="4">       [4., 5., 6.],
+</span><span data-line="5">       [5., 6., 7.],
+</span><span data-line="6">       [6., 7., 8.],
+</span><span data-line="7">       [7., 8., 9.]], dtype=float32)
+</span></pre></div>
+</div>
+</div>
+</div>
+<p>Often, interval data is composed of multiple blocks (e.g. bouts, songs, etc.) and segments should not cross block boundaries. <code class="docutils literal notranslate"><span class="pre">RhythmicSegments</span></code> will treat <code class="docutils literal notranslate"><span class="pre">np.nan</span></code> entries as block boundaries, unless <code class="docutils literal notranslate"><span class="pre">split_at_nan=False</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">intervals</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">]</span>
+</span><span data-line="2"><span class="n">rs</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_intervals</span><span class="p">(</span><span class="n">intervals</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span><span data-line="3"><span class="n">rs</span><span class="o">.</span><span class="n">segments</span> 
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span data-line="1">array([[1., 2.],
+</span><span data-line="2">       [2., 3.],
+</span><span data-line="3">       [3., 4.],
+</span><span data-line="4">       [5., 6.],
+</span><span data-line="5">       [7., 8.],
+</span><span data-line="6">       [8., 9.]], dtype=float32)
+</span></pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="event-data">
+<h2>Event data<a class="headerlink" href="#event-data" title="Link to this heading">¶</a></h2>
+<p>Finally, you can also start with event data such as onsets. Again, NaN entries are treated as boundaries:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">onsets</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">]</span>
+</span><span data-line="2"><span class="n">rs</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_events</span><span class="p">(</span><span class="n">onsets</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span><span data-line="3"><span class="n">rs</span><span class="o">.</span><span class="n">segments</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span data-line="1">array([[2., 1.],
+</span><span data-line="2">       [2., 3.],
+</span><span data-line="3">       [3., 1.]], dtype=float32)
+</span></pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="dataframes">
+<h2>Dataframes<a class="headerlink" href="#dataframes" title="Link to this heading">¶</a></h2>
+<p>You can also pass a pandas DataFrame to create a RhythmicSegments object. You do have to specify which <code class="docutils literal notranslate"><span class="pre">column</span></code> contains the event/interval data:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+</span><span data-line="2">
+</span><span data-line="3"><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+</span><span data-line="4">  <span class="n">onsets</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> 
+</span><span data-line="5">  <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="s2">&quot;e&quot;</span><span class="p">,</span> <span class="s2">&quot;f&quot;</span><span class="p">,</span> <span class="s2">&quot;g&quot;</span><span class="p">]</span>
+</span><span data-line="6"><span class="p">))</span>
+</span><span data-line="7">
+</span><span data-line="8"><span class="n">rs</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_events</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="s1">&#39;onsets&#39;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span><span data-line="9"><span class="n">rs</span><span class="o">.</span><span class="n">segments</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span data-line="1">array([[2., 1.],
+</span><span data-line="2">       [2., 3.],
+</span><span data-line="3">       [3., 1.]], dtype=float32)
+</span></pre></div>
+</div>
+</div>
+</div>
+<p>In this case the other columns will be added as metadata (more about that in another notebook):</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">rs</span><span class="o">.</span><span class="n">meta</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>labels_1</th>
+      <th>labels_2</th>
+      <th>step</th>
+      <th>start_time</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>a</td>
+      <td>b</td>
+      <td>0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>d</td>
+      <td>e</td>
+      <td>0</td>
+      <td>4.0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>e</td>
+      <td>f</td>
+      <td>1</td>
+      <td>6.0</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+</section>
+<section id="shorthands">
+<h2>Shorthands<a class="headerlink" href="#shorthands" title="Link to this heading">¶</a></h2>
+<p>There are several convenient shorthands for properties you might use. First of all, <code class="docutils literal notranslate"><span class="pre">.ratio</span></code> returns the rhythm ratio: the relative duration of the first interval. This is only defined for length-2 segments. Also, <code class="docutils literal notranslate"><span class="pre">.dur</span></code> is a shorthand for <code class="docutils literal notranslate"><span class="pre">.durations</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">intervals</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+</span><span data-line="2"><span class="n">rs2</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_intervals</span><span class="p">(</span><span class="n">intervals</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span><span data-line="3"><span class="nb">print</span><span class="p">(</span><span class="n">rs2</span><span class="o">.</span><span class="n">dur</span><span class="p">)</span>
+</span><span data-line="4"><span class="nb">print</span><span class="p">(</span><span class="n">rs2</span><span class="o">.</span><span class="n">ratio</span><span class="p">)</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span data-line="1">[3. 4. 5.]
+</span><span data-line="2">[0.33333334 0.5        0.4       ]
+</span></pre></div>
+</div>
+</div>
+</div>
+<p>The index of the segment is stored as metadata, and can be easily accessed using <code class="docutils literal notranslate"><span class="pre">.step</span></code>:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">rs2</span><span class="o">.</span><span class="n">step</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span data-line="1">0    0
+</span><span data-line="2">1    1
+</span><span data-line="3">2    2
+</span><span data-line="4">Name: step, dtype: int64
+</span></pre></div>
+</div>
+</div>
+</div>
+<p>Next, the <code class="docutils literal notranslate"><span class="pre">.pat</span></code> shorthand returns the first <span class="math notranslate nohighlight">\(n-1\)</span> pattern coordinates. Since patterns are normalized, these coordinates fully determine the point. The <code class="docutils literal notranslate"><span class="pre">.patdur</span></code> property concatenates the duration, giving the coordinates of all segments in pattern-duration space.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">rs3</span> <span class="o">=</span> <span class="n">RhythmicSegments</span><span class="o">.</span><span class="n">from_intervals</span><span class="p">(</span><span class="n">intervals</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</span><span data-line="2"><span class="nb">print</span><span class="p">(</span><span class="n">rs3</span><span class="o">.</span><span class="n">patterns</span><span class="p">)</span>
+</span><span data-line="3"><span class="nb">print</span><span class="p">(</span><span class="n">rs3</span><span class="o">.</span><span class="n">pat</span><span class="p">)</span>
+</span><span data-line="4"><span class="nb">print</span><span class="p">(</span><span class="n">rs3</span><span class="o">.</span><span class="n">patdur</span><span class="p">)</span>
+</span></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span data-line="1">[[0.2        0.4        0.4       ]
+</span><span data-line="2"> [0.2857143  0.2857143  0.42857143]]
+</span><span data-line="3">[[0.2       0.4      ]
+</span><span data-line="4"> [0.2857143 0.2857143]]
+</span><span data-line="5">[[0.2       0.4       5.       ]
+</span><span data-line="6"> [0.2857143 0.2857143 7.       ]]
+</span></pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="index.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">Home</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="Operations.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">Operations</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
+    </a>
+  </div></div></div>
+    </div>
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2025, Bas Cornelissen</p>
+  
+  <p>
+    Made with
+    
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials"></div>
+    </div>
+  </div>
+</footer>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script src="_static/shibuya.js?v=e730760c"></script>
+      <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script></body>
+</html>

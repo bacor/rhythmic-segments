@@ -1,0 +1,499 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "3929ae6b",
+   "metadata": {},
+   "source": [
+    "# Basic Usage"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "37b33d17",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "\n",
+    "from rhythmic_segments import RhythmicSegments"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "66a634e9",
+   "metadata": {},
+   "source": [
+    "### Rhythmic Segment Analysis"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "a4fd6ef9",
+   "metadata": {},
+   "source": [
+    "A *rhythmic segment analysis (RSA)* analyzes every fixed-length *segment* of a sequence of time intervals: the short groups you obtain by sliding a window across the data. Each segment has a *duration* and a *pattern*. The pattern captures the relative durations of a segment's intervals, either as a normalized vector or as a ratio. For example, the segment $(2, 4, 4)$ has the pattern $(0.2, 0.4, 0.4)$ or $1 : 2 : 2$; both descriptions are interchangeable. Thinking of patterns as normalized vectors shows that all patterns of a given length live on a *simplex*: a line when $n = 2$, a triangle when $n = 3$, and so on. The goal is to study rhythmic material by analyzing how its segments are distributed on that simplex."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "19b68ce6",
+   "metadata": {},
+   "source": [
+    "Computing patterns is as simple as normalizing the segment:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "e0307cae",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([0.2, 0.4, 0.4])"
+      ]
+     },
+     "execution_count": 2,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "segment = np.array([2, 4, 4])\n",
+    "pattern = segment / segment.sum()\n",
+    "pattern"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "3fd446dd",
+   "metadata": {},
+   "source": [
+    "And so you can absolutely do a rhythmic segment analysis without using this package. This package however provides some utilities that make things easier. In particular, the `RhythmicSegments` class allows you to conveniently store large numbers of segments and handle associated metadata, and makes them accessible via `.segments`, `.patterns`, `.durations`, `.meta`."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "72a8cc04",
+   "metadata": {},
+   "source": [
+    "### Segments"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b24fe931",
+   "metadata": {},
+   "source": [
+    "You can create a RhythmicSegments store from **segment** data, from **interval** data, or from **event** data such as note onset times. These require successively more preprocessing: `from_events` will compute the intervals, and then call `from_intervals`, which will extract all segments and then calls `from_segments`. The simplest, but one you won't use in practice is therefore `from_segments`:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "7b3836aa",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([[0.2       , 0.8       ],\n",
+       "       [0.33333334, 0.6666667 ],\n",
+       "       [0.5       , 0.5       ]], dtype=float32)"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "segments = [[2, 8], [.3, .6], [1, 1]]\n",
+    "rs = RhythmicSegments.from_segments(segments)\n",
+    "rs.patterns"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c6bdfd03",
+   "metadata": {},
+   "source": [
+    "### Intervals"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e719048e",
+   "metadata": {},
+   "source": [
+    "In practice, you will usually start from either events or intervals, and use the class to extract the segments for you:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "6e50a134",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([[1., 2., 3.],\n",
+       "       [2., 3., 4.],\n",
+       "       [3., 4., 5.],\n",
+       "       [4., 5., 6.],\n",
+       "       [5., 6., 7.],\n",
+       "       [6., 7., 8.],\n",
+       "       [7., 8., 9.]], dtype=float32)"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "intervals = [1, 2, 3, 4, 5, 6, 7, 8, 9]\n",
+    "rs = RhythmicSegments.from_intervals(intervals, length=3)\n",
+    "rs.segments"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "35ba0a94",
+   "metadata": {},
+   "source": [
+    "Often, interval data is composed of multiple blocks (e.g. bouts, songs, etc.) and segments should not cross block boundaries. `RhythmicSegments` will treat `np.nan` entries as block boundaries, unless `split_at_nan=False`."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "d00ef444",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([[1., 2.],\n",
+       "       [2., 3.],\n",
+       "       [3., 4.],\n",
+       "       [5., 6.],\n",
+       "       [7., 8.],\n",
+       "       [8., 9.]], dtype=float32)"
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "intervals = [1, 2, 3, 4, np.nan, 5, 6, np.nan, 7, 8, 9, np.nan]\n",
+    "rs = RhythmicSegments.from_intervals(intervals, length=2)\n",
+    "rs.segments "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "9bd44467",
+   "metadata": {},
+   "source": [
+    "### Event data"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "227cb7c6",
+   "metadata": {},
+   "source": [
+    "Finally, you can also start with event data such as onsets. Again, NaN entries are treated as boundaries:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "06bab68a",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([[2., 1.],\n",
+       "       [2., 3.],\n",
+       "       [3., 1.]], dtype=float32)"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "onsets = [0, 2, 3, np.nan, 4, 6, 9, 10]\n",
+    "rs = RhythmicSegments.from_events(onsets, length=2)\n",
+    "rs.segments"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "bee24f30",
+   "metadata": {},
+   "source": [
+    "## Dataframes"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e02a0ebc",
+   "metadata": {},
+   "source": [
+    "You can also pass a pandas DataFrame to create a RhythmicSegments object. You do have to specify which `column` contains the event/interval data:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "d503d872",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([[2., 1.],\n",
+       "       [2., 3.],\n",
+       "       [3., 1.]], dtype=float32)"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "import pandas as pd\n",
+    "\n",
+    "df = pd.DataFrame(dict(\n",
+    "  onsets = [0, 2, 3, np.nan, 4, 6, 9, 10], \n",
+    "  labels=[\"a\", \"b\", \"c\", np.nan, \"d\", \"e\", \"f\", \"g\"]\n",
+    "))\n",
+    "\n",
+    "rs = RhythmicSegments.from_events(df, column='onsets', length=2)\n",
+    "rs.segments"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "9b9244e8",
+   "metadata": {},
+   "source": [
+    "In this case the other columns will be added as metadata (more about that in another notebook):"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "2a9b7803",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>labels_1</th>\n",
+       "      <th>labels_2</th>\n",
+       "      <th>step</th>\n",
+       "      <th>start_time</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>a</td>\n",
+       "      <td>b</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>d</td>\n",
+       "      <td>e</td>\n",
+       "      <td>0</td>\n",
+       "      <td>4.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>e</td>\n",
+       "      <td>f</td>\n",
+       "      <td>1</td>\n",
+       "      <td>6.0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "  labels_1 labels_2  step  start_time\n",
+       "0        a        b     0         0.0\n",
+       "1        d        e     0         4.0\n",
+       "2        e        f     1         6.0"
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "rs.meta"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "4afad73f",
+   "metadata": {},
+   "source": [
+    "## Shorthands"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "cc1a1e87",
+   "metadata": {},
+   "source": [
+    "There are several convenient shorthands for properties you might use. First of all, `.ratio` returns the rhythm ratio: the relative duration of the first interval. This is only defined for length-2 segments. Also, `.dur` is a shorthand for `.durations`."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "a16f0aae",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[3. 4. 5.]\n",
+      "[[0.33333334]\n",
+      " [0.5       ]\n",
+      " [0.4       ]]\n"
+     ]
+    }
+   ],
+   "source": [
+    "intervals = [1, 2, 2, 3]\n",
+    "rs2 = RhythmicSegments.from_intervals(intervals, length=2)\n",
+    "print(rs2.dur)\n",
+    "print(rs2.ratio)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "cfe2213e",
+   "metadata": {},
+   "source": [
+    "The index of the segment is stored as metadata, and can be easily accessed using `.step`:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "2a3d7525",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0    0\n",
+       "1    1\n",
+       "2    2\n",
+       "Name: step, dtype: int64"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "rs2.step"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "3848a9a3",
+   "metadata": {},
+   "source": [
+    "Next, the `.pat` shorthand returns the first $n-1$ pattern coordinates. Since patterns are normalized, these coordinates fully determine the point. The `.patdur` property concatenates the duration, giving the coordinates of all segments in pattern-duration space."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "f7367049",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[[0.2        0.4        0.4       ]\n",
+      " [0.2857143  0.2857143  0.42857143]]\n",
+      "[[0.2       0.4      ]\n",
+      " [0.2857143 0.2857143]]\n",
+      "[[0.2       0.4       5.       ]\n",
+      " [0.2857143 0.2857143 7.       ]]\n"
+     ]
+    }
+   ],
+   "source": [
+    "rs3 = RhythmicSegments.from_intervals(intervals, length=3)\n",
+    "print(rs3.patterns)\n",
+    "print(rs3.pat)\n",
+    "print(rs3.patdur)"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "rhythmic-segments-py3.11",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.11.13"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

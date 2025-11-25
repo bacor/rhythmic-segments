@@ -1,0 +1,142 @@
+rhythmic_segments.meta
+======================
+
+.. py:module:: rhythmic_segments.meta
+
+.. autoapi-nested-parse::
+
+   Metadata-handling utilities for rhythmic segments.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   rhythmic_segments.meta.Aggregator
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   rhythmic_segments.meta.coerce_meta_frame
+   rhythmic_segments.meta.aggregate_meta
+   rhythmic_segments.meta.resolve_columns_and_names
+   rhythmic_segments.meta.agg_copy
+   rhythmic_segments.meta.agg_index
+   rhythmic_segments.meta.agg_first
+   rhythmic_segments.meta.agg_last
+   rhythmic_segments.meta.agg_join
+   rhythmic_segments.meta.agg_list
+   rhythmic_segments.meta.agg_mode
+   rhythmic_segments.meta.get_aggregator
+
+
+Module Contents
+---------------
+
+.. py:data:: Aggregator
+
+.. py:function:: coerce_meta_frame(meta: Any, expected_rows: Optional[int] = None, missing_rows_message: str = 'meta must match the expected row count', *, columns: Optional[collections.abc.Iterable[str]] = None, constants: Optional[collections.abc.Mapping[str, Any]] = None) -> pandas.DataFrame
+
+   Return *meta* as a :class:`pandas.DataFrame`.
+
+
+.. py:function:: aggregate_meta(meta_blocks: collections.abc.Iterable[pandas.DataFrame], value_blocks: collections.abc.Iterable[numpy.ndarray], window_len: int, meta_agg: Aggregator, expected_records: int) -> pandas.DataFrame
+
+   Aggregate metadata windows aligned with numeric value blocks.
+
+
+.. py:function:: resolve_columns_and_names(df: pandas.DataFrame, columns: Optional[collections.abc.Iterable[str]] = None, names: Optional[collections.abc.Iterable[str]] = None) -> Tuple[List[str], List[str]]
+
+.. py:function:: agg_copy(df: pandas.DataFrame, *, columns: Optional[collections.abc.Iterable[str]] = None, names: Optional[collections.abc.Iterable[str]] = None) -> Dict[str, Any]
+
+   Return every column value keyed by its position.
+
+   >>> import pandas as pd
+   >>> agg_copy(pd.DataFrame({"label": ["a", "b"]}))
+   {'label_1': 'a', 'label_2': 'b'}
+
+
+.. py:function:: agg_index(df: pandas.DataFrame, index: int, *, columns: Optional[collections.abc.Iterable[str]] = None, names: Optional[collections.abc.Iterable[str]] = None) -> Dict[str, Any]
+
+   Return metadata from the row at ``index``.
+
+   >>> import pandas as pd
+   >>> agg_index(pd.DataFrame({"label": ["a", "b"], "section": ["x", "y"]}), 1)
+   {'label': 'b', 'section': 'y'}
+   >>> agg_index(pd.DataFrame({"label": ["a", "b"], "section": ["x", "y"]}), 1, columns=["label"])
+   {'label': 'b'}
+
+
+.. py:function:: agg_first(df: pandas.DataFrame, *, columns: Optional[collections.abc.Iterable[str]] = None, names: Optional[collections.abc.Iterable[str]] = None) -> Dict[str, Any]
+
+   Return metadata from the first interval.
+
+   >>> import pandas as pd
+   >>> agg_first(pd.DataFrame({"label": ["a", "b"]}))
+   {'label': 'a'}
+
+
+.. py:function:: agg_last(df: pandas.DataFrame, *, columns: Optional[collections.abc.Iterable[str]] = None, names: Optional[collections.abc.Iterable[str]] = None) -> Dict[str, Any]
+
+   Return metadata from the last interval.
+
+   >>> import pandas as pd
+   >>> agg_last(pd.DataFrame({"label": ["a", "b"]}))
+   {'label': 'b'}
+
+
+.. py:function:: agg_join(df: pandas.DataFrame, *, separator: str = '-', columns: Optional[collections.abc.Iterable[str]] = None, names: Optional[collections.abc.Iterable[str]] = None) -> Dict[str, Any]
+
+   Join values from each column.
+
+   >>> import pandas as pd
+   >>> agg_join(pd.DataFrame({"label": ["a", "b"], "section": ["x", "y"]}), separator="|")
+   {'label': 'a|b', 'section': 'x|y'}
+
+
+.. py:function:: agg_list(df: pandas.DataFrame, *, columns: Optional[collections.abc.Iterable[str]] = None, names: Optional[collections.abc.Iterable[str]] = None) -> Dict[str, Any]
+
+   Return metadata as lists per column.
+
+   >>> import pandas as pd
+   >>> agg_list(pd.DataFrame({"label": ["a", "b"]}))
+   {'label': ['a', 'b']}
+
+
+.. py:function:: agg_mode(df: pandas.DataFrame, *, columns: Optional[collections.abc.Iterable[str]] = None, names: Optional[collections.abc.Iterable[str]] = None) -> Dict[str, Any]
+
+   Return the most frequent value per column using first-occurrence tie breaks.
+
+   The most common value is reported for each selected column. When multiple
+   values share the same top frequency, the value that appears first in the
+   column is chosen so results stay deterministic.
+
+   >>> import pandas as pd
+   >>> agg_mode(pd.DataFrame({"label": ["a", "b", "a"], "section": ["x", "y", "y"]}))
+   {'label': 'a', 'section': 'y'}
+   >>> agg_mode(pd.DataFrame({"label": ["b", "a", "a", "b"]}))
+   {'label': 'b'}
+
+
+.. py:function:: get_aggregator(name: str, **kwargs: Any) -> Aggregator
+
+   Return a named metadata aggregator.
+
+   Supported names are ``"copy"``, ``"index"``, ``"first"``, ``"last"``,
+   ``"join"``, ``"list"``, and ``"mode"``. Additional keyword arguments are
+   forwarded to the underlying aggregator.
+
+   >>> import pandas as pd
+   >>> agg = get_aggregator("first", columns=["label"])
+   >>> agg(pd.DataFrame({"label": ["a", "b"]}))
+   {'label': 'a'}
+   >>> join = get_aggregator("join", columns=["label"], separator="|")
+   >>> join(pd.DataFrame({"label": ["a", "b"]}))
+   {'label': 'a|b'}
+
+

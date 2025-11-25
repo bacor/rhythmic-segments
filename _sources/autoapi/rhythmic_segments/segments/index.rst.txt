@@ -1,0 +1,537 @@
+rhythmic_segments.segments
+==========================
+
+.. py:module:: rhythmic_segments.segments
+
+.. autoapi-nested-parse::
+
+   Utility functions for working with rhythmic segments.
+
+   This module provides helpers for constructing and manipulating n-gram segments
+   that represent consecutive rhythmic events.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   rhythmic_segments.segments.RhythmicSegments
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   rhythmic_segments.segments.extract_segments
+   rhythmic_segments.segments.normalize_segments
+   rhythmic_segments.segments.process_input_data
+
+
+Module Contents
+---------------
+
+.. py:function:: extract_segments(intervals: Iterable[float], length: int, *, warn_on_short: bool = True, copy: bool = True, check_zero_intervals: bool = True, check_nan_intervals: bool = True) -> numpy.ndarray
+
+   Return a vectorized sliding-window matrix of interval segments.
+
+   Parameters
+   ----------
+   intervals : Iterable[float]
+       Contiguous numeric intervals. Inputs containing ``np.nan`` must be
+       pre-split via :func:`rhythmic_segments.helpers.split_into_blocks`.
+   length : int
+       Window size of each produced segment.
+   warn_on_short : bool, optional
+       Emit a :class:`UserWarning` when the data is shorter than ``length`` and
+       no segments can be formed.
+   copy : bool, optional
+       Return a copy of the data (default) instead of a view.
+   check_zero_intervals, check_nan_intervals : bool, optional
+       Enable validation that forbids zero or NaN intervals, respectively.
+
+   Returns
+   -------
+   np.ndarray
+       Matrix of shape ``(n_segments, length)`` containing the extracted
+       segments.
+
+   Examples
+   --------
+   >>> import numpy as np
+   >>> extract_segments(np.arange(1, 6, dtype=float), 3)
+   array([[1., 2., 3.],
+          [2., 3., 4.],
+          [3., 4., 5.]])
+   >>> extract_segments([1, 0, 2], 2, check_zero_intervals=False)
+   array([[1., 0.],
+          [0., 2.]])
+
+
+.. py:function:: normalize_segments(segments: Iterable[Iterable[float]]) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+   Normalize each segment to sum to one and return scaling factors.
+
+   >>> normalize_segments([[1, 1], [2, 1]])
+   (array([[0.5       , 0.5       ],
+          [0.66666667, 0.33333333]]), array([2., 3.]))
+
+
+.. py:function:: process_input_data(data: Any, *, column: Optional[str], meta: Optional[Any], meta_columns: Optional[Iterable[str]], meta_constants: Optional[collections.abc.Mapping[str, Any]], data_label: str) -> Tuple[numpy.ndarray, Optional[pandas.DataFrame]]
+
+   Return numeric data and processed metadata extracted from *data*.
+
+   When *column* is provided and *meta* is supplied, the explicit metadata
+   takes precedence over the inferred DataFrame columns. Metadata selection
+   via *meta_columns* and constant assignments from *meta_constants* are
+   applied before returning the DataFrame.
+
+
+.. py:class:: RhythmicSegments
+
+   Immutable container for rhythmic segment matrices.
+
+   >>> rs = RhythmicSegments.from_intervals([0.5, 1.0, 0.75, 1.25], length=2)
+   >>> rs.segments.shape
+   (3, 2)
+   >>> rs.durations
+   array([1.5 , 1.75, 2.  ], dtype=float32)
+
+
+   .. py:attribute:: segments
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: patterns
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: durations
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: length
+      :type:  int
+
+
+   .. py:attribute:: meta
+      :type:  pandas.DataFrame
+
+
+   .. py:method:: from_segments(segments: Iterable[Iterable[float]], *, length: Optional[int] = None, meta: Optional[Any] = None, meta_columns: Optional[Iterable[str]] = None, meta_constants: Optional[collections.abc.Mapping[str, Any]] = None, dtype=np.dtype('float32'), _allow_reserved: bool = False) -> RhythmicSegments
+      :staticmethod:
+
+
+      Create an instance from a precomputed segment matrix.
+
+      Parameters
+      ----------
+      segments : Iterable[Iterable[float]]
+          Matrix of segment data.
+      length : Optional[int]
+          Expected segment length. Required when ``segments`` is empty and must
+          be at least ``2``.
+      meta : Optional[Any]
+          Per-segment metadata; anything convertible to :class:`pandas.DataFrame`
+          with one row per segment.
+      meta_columns : Optional[Iterable[str]], optional
+          Names of metadata columns to retain. When ``None`` all columns are
+          kept.
+      meta_constants : Optional[Mapping[str, Any]], optional
+          Constant metadata columns to add.
+      dtype : data-type, optional
+          Target dtype for the internal arrays. Defaults to ``np.float32``.
+
+      Examples
+      --------
+      >>> rs = RhythmicSegments.from_segments([[1, 2], [3, 4]], meta={'label': ['a', 'b']})
+      >>> rs.segments
+      array([[1., 2.],
+             [3., 4.]], dtype=float32)
+      >>> list(rs.meta['label'])
+      ['a', 'b']
+
+
+
+   .. py:method:: from_intervals(intervals: Iterable[Any], length: int, *, split_at_nan: bool = True, warn_on_short: bool = True, copy: bool = True, check_zero_intervals: bool = True, column: Optional[str] = None, meta: Optional[Any] = None, meta_columns: Optional[Iterable[str]] = None, meta_constants: Optional[collections.abc.Mapping[str, Any]] = None, meta_agg: Optional[rhythmic_segments.meta.Aggregator] = _AGG_COPY, **from_segments_kwargs: Any) -> RhythmicSegments
+      :staticmethod:
+
+
+      Create an instance from sequential interval data.
+
+      Parameters
+      ----------
+      intervals : Iterable[Any]
+          Contiguous numeric intervals to window. Inputs containing ``np.nan``
+          delimiters can be handled by enabling ``split_at_nan``.
+      length : int
+          Segment length. Must be at least ``2``.
+      split_at_nan : bool, optional
+          If ``True`` (default) split the interval stream on ``np.nan``
+          boundaries before extraction.
+      warn_on_short, copy, check_zero_intervals : bool, optional
+          Forwarded to :func:`extract_segments` (see that function for details).
+      column : Optional[str], optional
+          When provided, ``intervals`` must be DataFrame-like and the selected
+          column supplies the numeric intervals. All remaining columns are
+          treated as metadata.
+      meta : Optional[Any]
+          Optional metadata with one row per input interval. Anything that can
+          be converted to :class:`pandas.DataFrame` is accepted. Ignored when
+          ``column`` is provided. Rows corresponding to ``np.nan`` boundaries
+          are dropped automatically when ``split_at_nan`` is ``True``.
+      meta_columns : Optional[Iterable[str]], optional
+          Names of metadata columns to retain. When ``None`` all columns are
+          kept.
+      meta_constants : Optional[Mapping[str, Any]], optional
+          Constant metadata columns to add to each resulting segment.
+      meta_agg : Aggregator
+          Aggregation function that converts per-interval metadata into a
+          single record for each produced segment. Defaults to
+          :func:`get_aggregator("copy")`.
+      **from_segments_kwargs : Any
+          Additional keyword arguments forwarded to :meth:`from_segments`.
+
+      Examples
+      --------
+
+      >>> rs = RhythmicSegments.from_intervals([0.5, 1.0, 0.75, 1.25], length=2)
+      >>> rs.segments
+      array([[0.5 , 1.  ],
+             [1.  , 0.75],
+             [0.75, 1.25]], dtype=float32)
+      >>> rs.patterns
+      array([[0.33333334, 0.6666667 ],
+             [0.5714286 , 0.42857143],
+             [0.375     , 0.625     ]], dtype=float32)
+      >>> rs.durations
+      array([1.5 , 1.75, 2.  ], dtype=float32)
+
+      By default, np.nan values are treated as boundaries between blocks of intervals.
+      Segments are not allowed to cross such boundaries, as in the following example.
+      This behaviour can be disabled using `split_at_nan=False`.
+
+      >>> intervals = [1, 2, 3, np.nan, 4, 5, np.nan, 6, 7, 8]
+      >>> rs = RhythmicSegments.from_intervals(intervals, length=2)
+      >>> rs.segments
+      array([[1., 2.],
+         [2., 3.],
+         [4., 5.],
+         [6., 7.],
+         [7., 8.]], dtype=float32)
+
+      You can also pass metadata. It has to have the same shape as the intervals: rows corresponding
+      to NaN intervals will be dropped, essentially. An aggregator function specifies how meta rows
+      for all intervals in a segment are combined into the metadata for that segment. Here is an
+      example where the labels of intervals in a segment are joined by dashes to form a segment label.
+
+      >>> intervals = [0.5, 1.0, np.nan, 0.75, 1.0]
+      >>> meta = {'label': ['a', 'b', 'nan', 'c', 'd']}
+      >>> agg = lambda df: {'labels': '-'.join(df['label'])}
+      >>> rs = RhythmicSegments.from_intervals(intervals, length=2, meta=meta, meta_agg=agg)
+      >>> rs.segments
+      array([[0.5 , 1.  ],
+         [0.75, 1.  ]], dtype=float32)
+      >>> list(rs.meta['labels'])
+      ['a-b', 'c-d']
+
+      The returned object's metadata always contains a ``step`` column that
+      records the within-block index of each segment.
+
+      If the number of intervals is smaller than the segment length, a warning is thrown,
+      this can be turned off using the warn_on_short flag:
+
+      >>> RhythmicSegments.from_intervals([1, 2], length=3)
+      Traceback (most recent call last):
+      ...
+      ValueError: Not enough intervals to form a segment of length 3; requires at least 3 intervals.
+
+      >>> RhythmicSegments.from_intervals([1, 2], length=2)
+      RhythmicSegments(segment_length=2, n_segments=1, meta_columns=[step], segments=[[1., 2.]])
+
+
+
+   .. py:method:: from_events(events: Iterable[Any], length: int, *, drop_nan: bool = False, split_at_nan: bool = True, column: Optional[str] = None, meta: Optional[Any] = None, meta_columns: Optional[Iterable[str]] = None, meta_constants: Optional[collections.abc.Mapping[str, Any]] = None, interval_meta_agg: Optional[rhythmic_segments.meta.Aggregator] = _AGG_FIRST, segment_meta_agg: Optional[rhythmic_segments.meta.Aggregator] = _AGG_COPY, **from_intervals_kwargs: Any) -> RhythmicSegments
+      :staticmethod:
+
+
+      Create an instance from timestamped event data.
+
+      Parameters
+      ----------
+      events : Iterable[Any]
+          Monotonic (or at least ordered) series of onset timestamps. Must be
+          convertible to ``float``.
+      length : int
+          Segment length passed to :meth:`from_intervals`. Must be at least ``2``.
+      drop_nan : bool, optional
+          Remove ``NaN`` timestamps before differencing. When ``False``
+          (default), the resulting interval stream will contain ``NaN``
+          markers wherever the original event data did, which in turn act as
+          block boundaries for :meth:`from_intervals`.
+      split_at_nan : bool, optional
+          Forwarded to :meth:`from_intervals`. When ``True`` (default),
+          segments never span ``NaN`` intervals; ``False`` disables the
+          boundary handling.
+      column : Optional[str], optional
+          When provided, ``events`` must be DataFrame-like and the specified
+          column supplies the timestamp values. All remaining columns are
+          treated as metadata.
+      meta : Optional[Any]
+          Optional metadata aligned with the input events. Anything that can be
+          converted to :class:`pandas.DataFrame` is accepted. Ignored when
+          ``column`` is provided. When
+          ``drop_nan=True`` the rows corresponding to dropped events are
+          removed automatically.
+      meta_columns : Optional[Iterable[str]], optional
+          Names of metadata columns to retain. When ``None`` all columns are
+          preserved.
+      meta_constants : Optional[Mapping[str, Any]], optional
+          Constant metadata columns to add to each resulting segment.
+      interval_meta_agg : Aggregator
+          Aggregation function that combines metadata for pairs of consecutive
+          events into per-interval records. Defaults to
+          :func:`get_aggregator("first")`.
+      segment_meta_agg : Aggregator
+          Forwarded to :meth:`from_intervals` to transform per-interval
+          metadata into per-segment records. Defaults to
+          :func:`get_aggregator("copy")`.
+      **from_intervals_kwargs : Any
+          Additional keyword arguments forwarded to :meth:`from_intervals`,
+          such as ``dtype``.
+
+      Examples
+      --------
+      >>> events = [0.0, 0.5, 1.0, np.nan, 1.5, 2.0, 2.5]
+      >>> rs = RhythmicSegments.from_events(events, length=2)
+      >>> rs.segments
+      array([[0.5, 0.5],
+         [0.5, 0.5]], dtype=float32)
+
+      Segments never span the ``np.nan`` boundary. To discard the boundary
+      entirely, enable ``drop_nan=True``:
+
+      >>> RhythmicSegments.from_events(events, length=2, drop_nan=True).segments
+      array([[0.5, 0.5],
+          [0.5, 0.5],
+          [0.5, 0.5],
+          [0.5, 0.5]], dtype=float32)
+
+      The resulting metadata includes a ``start_time`` column storing the
+      absolute onset of each segment.
+
+      Note that passing ``split_at_nan=False`` while retaining the ``NaN`` intervals
+      will raise an error because :meth:`from_intervals` forbids segments crossing
+      the boundary:
+
+      >>> RhythmicSegments.from_events(events, length=2, split_at_nan=False)
+      Traceback (most recent call last):
+      ...
+      ValueError: Intervals contain NaN values; enable split_at_nan or preprocess via split_into_blocks().
+
+
+
+   .. py:method:: concat(*segments: RhythmicSegments, source_col: Optional[str] = None) -> RhythmicSegments
+      :staticmethod:
+
+
+      Concatenate multiple :class:`RhythmicSegments` objects.
+
+      Metadata columns are merged using :func:`pandas.concat`; missing values
+      are filled with ``NaN`` as usual.
+
+      Parameters
+      ----------
+      segments : RhythmicSegments
+          Objects to concatenate.
+      source_col : Optional[str]
+          Name of a metadata column storing the positional index of the source
+          object. ``None`` disables the column.
+
+      Examples
+      --------
+      >>> rs1 = RhythmicSegments.from_segments([[1, 2]], meta=dict(label=['a']))
+      >>> rs2 = RhythmicSegments.from_segments([[3, 4]], meta=dict(label=['b']))
+      >>> merged = RhythmicSegments.concat(rs1, rs2, source_col='source')
+      >>> merged.segments
+      array([[1., 2.],
+             [3., 4.]], dtype=float32)
+      >>> list(merged.meta['source'])
+      [0, 1]
+
+
+
+   .. py:property:: count
+      :type: int
+
+
+      Number of stored segments.
+
+
+
+   .. py:property:: step
+      :type: pandas.Series
+
+
+      Within-block step index for each segment.
+
+
+
+   .. py:property:: start_time
+      :type: pandas.Series
+
+
+      Absolute start time for each segment.
+
+
+
+   .. py:property:: pat
+      :type: numpy.ndarray
+
+
+      Shorthand for the pattern coordinates without the final entry.
+
+      >>> rs = RhythmicSegments.from_segments([[1.0, 2.0, 1.0]])
+      >>> rs.patterns
+      array([[0.25, 0.5 , 0.25]], dtype=float32)
+      >>> rs.pat
+      array([[0.25, 0.5 ]], dtype=float32)
+
+
+
+   .. py:property:: dur
+      :type: numpy.ndarray
+
+
+      Shorthand for segment durations.
+
+      >>> rs = RhythmicSegments.from_segments([[1.0, 2.0, 1.0]])
+      >>> rs.durations
+      array([4.], dtype=float32)
+      >>> rs.dur
+      array([4.], dtype=float32)
+
+
+
+   .. py:property:: ratio
+      :type: numpy.ndarray
+
+
+      Rhythm ratios of the segments.
+
+      This is an alias of alias of ``patterns[:, 0]``, and only defined for length-two
+      segments. It raises a :class:`ValueError` when called on segments with length other
+      than two.
+
+      >>> RhythmicSegments.from_segments([[1.0, 1.0]]).ratio
+      array([0.5], dtype=float32)
+      >>> RhythmicSegments.from_segments([[1.0, 1.0, 2.0]]).ratio
+      Traceback (most recent call last):
+      ...
+      ValueError: Ratios are only defined for length-two segments.
+
+
+
+   .. py:property:: patdur
+      :type: numpy.ndarray
+
+
+      Matrix of coordinates in pattern-duration space.
+
+      Equivalent to ``np.column_stack((rs.pat, rs.durations))``: all but the
+      final pattern column followed by the duration column, giving a point in
+      pattern-duration space for each segment.
+
+      >>> rs = RhythmicSegments.from_segments([[1.0, 2.0, 1.0]])
+      >>> rs.patdur
+      array([[0.25, 0.5 , 4.  ]], dtype=float32)
+
+
+
+   .. py:method:: take(idx: Union[numpy.ndarray, List[int]]) -> RhythmicSegments
+
+      Return a new instance containing only the segments at *idx*.
+
+      >>> rs = RhythmicSegments.from_segments([[1, 2], [3, 4]], meta=dict(id=[0, 1]))
+      >>> rs.take([1]).segments
+      array([[3., 4.]], dtype=float32)
+      >>> list(rs.take([1]).meta['id'])
+      [1]
+
+
+
+   .. py:method:: filter(mask: Union[numpy.ndarray, pandas.Series]) -> RhythmicSegments
+
+      Return a new instance containing segments where *mask* is true.
+
+      >>> rs = RhythmicSegments.from_segments([[1, 2], [3, 4]], meta=dict(id=[0, 1]))
+      >>> rs.filter([True, False]).segments
+      array([[1., 2.]], dtype=float32)
+
+
+
+   .. py:method:: filter_by_duration(min_value: Optional[float] = None, max_value: Optional[float] = None, min_quantile: Optional[float] = None, max_quantile: Optional[float] = None) -> RhythmicSegments
+
+      Return a new instance filtered by duration thresholds.
+
+      Parameters
+      ----------
+      min_value, max_value : Optional[float], optional
+          Absolute duration bounds (inclusive). When supplied, these override
+          the corresponding quantile parameters.
+      min_quantile, max_quantile : Optional[float], optional
+          Quantile-based bounds (inclusive) used when explicit ``min_value`` or
+          ``max_value`` are not provided. Pass ``None`` to disable a bound.
+
+      Examples
+      --------
+      >>> rs = RhythmicSegments.from_segments([[1, 2], [3, 4], [5, 6]])
+      >>> rs.durations
+      array([ 3.,  7., 11.], dtype=float32)
+      >>> short = rs.filter_by_duration(max_quantile=0.5)
+      >>> short.durations
+      array([3., 7.], dtype=float32)
+      >>> rs.filter_by_duration(min_value=8.0).durations
+      array([11.], dtype=float32)
+      >>> rs.filter_by_duration(min_value=3.0, max_value=8.0).durations
+      array([3., 7.], dtype=float32)
+      >>> rs.filter_by_duration()
+      Traceback (most recent call last):
+      ...
+      ValueError: At least one duration bound must be specified
+
+
+
+   .. py:method:: with_meta(**cols: Any) -> RhythmicSegments
+
+      Return a new instance with additional metadata columns.
+
+      >>> rs = RhythmicSegments.from_segments([[1, 2], [3, 4]])
+      >>> rs.with_meta(label=['a', 'b']).meta['label'].tolist()
+      ['a', 'b']
+
+
+
+   .. py:method:: query(expr: str, **query_kwargs: Any) -> RhythmicSegments
+
+      Return a new instance filtered by evaluating *expr* on the metadata.
+
+      >>> rs = RhythmicSegments.from_segments([[1, 2], [3, 4]], meta={'id': [0, 1]})
+      >>> rs.query('id == 1').segments
+      array([[3., 4.]], dtype=float32)
+
+
+
+   .. py:method:: shuffle(random_state: Optional[int] = None) -> RhythmicSegments
+
+      Return a new instance with rows shuffled uniformly at random.
+
+      >>> rs = RhythmicSegments.from_segments([[1, 2], [3, 4]])
+      >>> rs.shuffle(random_state=3).segments
+      array([[3., 4.],
+         [1., 2.]], dtype=float32)
+
+
+
