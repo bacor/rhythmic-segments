@@ -122,3 +122,21 @@ def test_filter_duration_value_precedence():
     result = rs.filter_by_duration(min_value=7.0, min_quantile=0.1)
     np.testing.assert_allclose(result.durations, np.array([7.0], dtype=np.float32))
 
+
+def test_patdur_combines_pattern_and_duration():
+    rs = RhythmicSegments.from_segments([[1.0, 2.0, 1.0], [2.0, 2.0, 4.0]])
+    expected = np.column_stack((rs.patterns[:, :-1], rs.durations))
+    np.testing.assert_allclose(rs.patdur, expected)
+
+
+def test_pat_and_dur_shorthands():
+    rs = RhythmicSegments.from_segments([[1.0, 2.0, 1.0], [2.0, 1.0, 3.0]])
+    np.testing.assert_allclose(rs.pat, rs.patterns[:, :-1])
+    np.testing.assert_allclose(rs.dur, rs.durations)
+
+
+def test_ratio_only_for_length_two():
+    rs = RhythmicSegments.from_segments([[1.0, 1.0], [2.0, 1.0]])
+    np.testing.assert_allclose(rs.ratio, rs.pat)
+    with pytest.raises(ValueError):
+        RhythmicSegments.from_segments([[1.0, 1.0, 2.0]]).ratio

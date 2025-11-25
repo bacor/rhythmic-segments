@@ -821,6 +821,67 @@ class RhythmicSegments:
             )
         return self.meta["start_time"]
 
+    @property
+    def pat(self) -> np.ndarray:
+        """Shorthand for the pattern coordinates without the final entry.
+
+        >>> rs = RhythmicSegments.from_segments([[1.0, 2.0, 1.0]])
+        >>> rs.patterns
+        array([[0.25, 0.5 , 0.25]], dtype=float32)
+        >>> rs.pat
+        array([[0.25, 0.5 ]], dtype=float32)
+        """
+
+        return self.patterns[:, :-1]
+
+    @property
+    def dur(self) -> np.ndarray:
+        """Shorthand for segment durations.
+
+        >>> rs = RhythmicSegments.from_segments([[1.0, 2.0, 1.0]])
+        >>> rs.durations
+        array([4.], dtype=float32)
+        >>> rs.dur
+        array([4.], dtype=float32)
+        """
+
+        return self.durations
+
+    @property
+    def ratio(self) -> np.ndarray:
+        """Rhythm ratios of the segments.
+
+        This is an alias of alias of ``pat``, but only defined for length-two
+        segments. It raises a :class:`ValueError` when called on segments with length other
+        than two.
+
+        >>> RhythmicSegments.from_segments([[1.0, 1.0]]).ratio
+        array([[0.5]], dtype=float32)
+        >>> RhythmicSegments.from_segments([[1.0, 1.0, 2.0]]).ratio
+        Traceback (most recent call last):
+        ...
+        ValueError: Ratios are only defined for length-two segments.
+        """
+
+        if self.length != 2:
+            raise ValueError("Ratios are only defined for length-two segments.")
+        return self.pat
+
+    @property
+    def patdur(self) -> np.ndarray:
+        """Matrix of coordinates in pattern-duration space.
+
+        Equivalent to ``np.column_stack((rs.pat, rs.durations))``: all but the
+        final pattern column followed by the duration column, giving a point in
+        pattern-duration space for each segment.
+
+        >>> rs = RhythmicSegments.from_segments([[1.0, 2.0, 1.0]])
+        >>> rs.patdur
+        array([[0.25, 0.5 , 4.  ]], dtype=float32)
+        """
+
+        return np.column_stack((self.pat, self.durations))
+
     def take(self, idx: Union[np.ndarray, List[int]]) -> "RhythmicSegments":
         """Return a new instance containing only the segments at *idx*.
 
