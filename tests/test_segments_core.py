@@ -137,6 +137,6 @@ def test_pat_and_dur_shorthands():
 
 def test_ratio_only_for_length_two():
     rs = RhythmicSegments.from_segments([[1.0, 1.0], [2.0, 1.0]])
-    np.testing.assert_allclose(rs.ratio, rs.pat)
+    np.testing.assert_allclose(rs.ratio, rs.patterns[:, 0])
     with pytest.raises(ValueError):
         RhythmicSegments.from_segments([[1.0, 1.0, 2.0]]).ratio

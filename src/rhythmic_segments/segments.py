@@ -851,12 +851,12 @@ class RhythmicSegments:
     def ratio(self) -> np.ndarray:
         """Rhythm ratios of the segments.
 
-        This is an alias of alias of ``pat``, but only defined for length-two
+        This is an alias of alias of ``patterns[:, 0]``, and only defined for length-two
         segments. It raises a :class:`ValueError` when called on segments with length other
         than two.
 
         >>> RhythmicSegments.from_segments([[1.0, 1.0]]).ratio
-        array([[0.5]], dtype=float32)
+        array([0.5], dtype=float32)
         >>> RhythmicSegments.from_segments([[1.0, 1.0, 2.0]]).ratio
         Traceback (most recent call last):
         ...
@@ -865,7 +865,7 @@ class RhythmicSegments:
 
         if self.length != 2:
             raise ValueError("Ratios are only defined for length-two segments.")
-        return self.pat
+        return self.patterns[:, 0]
 
     @property
     def patdur(self) -> np.ndarray:
